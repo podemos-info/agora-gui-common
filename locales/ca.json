@@ -18,7 +18,7 @@
     "name": "Agora Voting"
   },
   "avRegistration": {
-    "loginHeader": "Entrar en tu cuenta de __name__",
+    "loginHeader": "Entrar al teu compte d'__name__",
     "helpRegisterForm": "Per poder votar, has de registrar-te abans mitjançant aquest formulari. Alguns dels camps són obligatoris: llegeix bé la informació d'ajuda",
     "helpAdminRegisterForm": "Para poder crear votaciones tienes que registrarte primero mediante este formulario. Lee bien la información de ayuda",
     "registerFormHelpTitle": "Registrándote para votar",
@@ -26,8 +26,8 @@
     "fillValidFormText": "Per poder enviar el formulari, emplena correctament tots els camps.",
     "invalidRegisterData": "No ha sido posible registrarte con los datos aportados. Por favor, revísalos, o ponte en contacto con los administradores de la votació,",
     "logout": "Salir",
-    "codeLabel": "Código de Autenticación",
-    "emailLabel": "Correo electrónico",
+    "codeLabel": "Codi d'autenticació",
+    "emailLabel": "Correu electrònic",
     "telLabel": "Telèfon",
     "telInvalid": " Número de teléfono inválido. Ejemplo de número válido: 666666666",
     "telPlaceholder": "Ejemplo: 666666666",
@@ -73,6 +73,7 @@
     "invalidDni": "DNI/NIE no vàlids",
     "dniHelp": "Especifica un DNI/NIE vàlid. Exemples: 1234567R o X0123456R",
     "imageHelp": "Add an image in jpg or png format",
+    "codeHelp": "Envia el codi de 8 caràcters que has rebut en el correu de votació",
     "invalidImage": "Invalid Image"
   },
   
