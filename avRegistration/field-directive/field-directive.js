@@ -24,9 +24,9 @@ angular.module('avRegistration')
       console.log("type = " + scope.field.type);
       scope.index = attrs.index;
 
-      scope.slugify = function (text)
+      scope.slugify = function (text, max_length)
       {
-        return text.toString().toLowerCase()
+        return text.toString().substr(0, max_length).toLowerCase()
           .replace(/\s+/g, '-')           // Replace spaces with -
           .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
           .replace(/\-\-+/g, '-')         // Replace multiple - with single -

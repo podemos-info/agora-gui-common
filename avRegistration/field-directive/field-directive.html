@@ -1,4 +1,4 @@
-<div ng-switch="field.type" ng-class="{'hidden': !!field.hidden}" class="field-id-{{slugify(field.name)}}">
+<div ng-switch="field.type" ng-class="{'hidden': !!field.hidden}" class="field-id-{{slugify(field.name, 10)}}">
   <div avr-email-field ng-switch-when="email"></div>
   <div avr-password-field ng-switch-when="password"></div>
   <div avr-code-field ng-switch-when="code"></div>
