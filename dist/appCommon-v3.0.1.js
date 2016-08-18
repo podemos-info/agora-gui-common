@@ -108,7 +108,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         return fields;
     }, authmethod.getLoginFields = function(viewEventData) {
         var fields = authmethod.getRegisterFields(viewEventData);
-        "sms" !== viewEventData.auth_method && "email" !== viewEventData.auth_method || fields.push({
+        ("sms" === viewEventData.auth_method || "email" === viewEventData.auth_method) && fields.push({
             name: "code",
             type: "code",
             required: !0,
@@ -175,7 +175,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         attrs.code && attrs.code.length > 0 && (scope.code = attrs.code), scope.email = null, 
         attrs.email && attrs.email.length > 0 && (scope.email = attrs.email), scope.isAdmin = !1, 
         autheventid === adminId && (scope.isAdmin = !0), scope.resendAuthCode = function(field) {
-            if (!scope.sendingData && "sms" === scope.method && scope.telIndex !== -1 && !scope.form["input" + scope.telIndex].$invalid) {
+            if (!scope.sendingData && "sms" === scope.method && -1 !== scope.telIndex && !scope.form["input" + scope.telIndex].$invalid) {
                 field.value = "";
                 var data = {};
                 data.tlf = scope.telField.value, scope.sendingData = !0, Authmethod.resendAuthCode(data, autheventid).success(function(rcvData) {
@@ -217,7 +217,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
                 return scope.stateData[el.name] ? (el.value = scope.stateData[el.name], el.disabled = !0) : (el.value = null, 
                 el.disabled = !1), "email" === el.type && null !== scope.email ? (el.value = scope.email, 
                 el.disabled = !0) : "code" === el.type && null !== scope.code ? (el.value = scope.code.trim().toUpperCase(), 
-                el.disabled = !0) : "tlf" === el.type && "sms" === scope.method && (null !== scope.email && scope.email.indexOf("@") === -1 && (el.value = scope.email, 
+                el.disabled = !0) : "tlf" === el.type && "sms" === scope.method && (null !== scope.email && -1 === scope.email.indexOf("@") && (el.value = scope.email, 
                 el.disabled = !0), scope.telIndex = index + 1, scope.telField = el), el;
             }), filled_fields = _.filter(fields, function(el) {
                 return null !== el.value;
@@ -333,11 +333,11 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         link: link,
         templateUrl: "avRegistration/field-directive/field-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avrEmailField", [ "$state", "Patterns", function($state, Patterns) {
+} ]), angular.module("avRegistration").directive("avrEmailField", [ "$state", "$location", "Patterns", function($state, $location, Patterns) {
     function link(scope, element, attrs) {
         scope.patterns = function(name) {
             return Patterns.get(name);
-        };
+        }, scope.field.allow_url_get_param_prefill && $location.search()[scope.field.name] && (scope.field.value = $location.search()[scope.field.name]);
     }
     return {
         restrict: "AE",
@@ -345,15 +345,20 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         scope: !0,
         templateUrl: "avRegistration/fields/email-field-directive/email-field-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avrPasswordField", [ "$state", function($state) {
+} ]), angular.module("avRegistration").directive("avrPasswordField", [ "$state", "$location", function($state, $location) {
+    function link(scope, element, attrs) {
+        scope.field.allow_url_get_param_prefill && $location.search()[scope.field.name] && (scope.field.value = $location.search()[scope.field.name]);
+    }
     return {
         restrict: "AE",
+        link: link,
         scope: !0,
         templateUrl: "avRegistration/fields/password-field-directive/password-field-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avrTextField", [ "$state", function($state) {
+} ]), angular.module("avRegistration").directive("avrTextField", [ "$state", "$location", function($state, $location) {
     function link(scope, element, attrs) {
         angular.isUndefined(scope.field.regex) ? scope.re = new RegExp("") : scope.re = new RegExp(scope.field.regex), 
+        scope.field.allow_url_get_param_prefill && $location.search()[scope.field.name] && $location.search()[scope.field.name].match(scope.re) && (scope.field.value = $location.search()[scope.field.name]), 
         scope.getRe = function(value) {
             return scope.re;
         };
@@ -364,9 +369,10 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         scope: !0,
         templateUrl: "avRegistration/fields/text-field-directive/text-field-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avrDniField", [ "$state", function($state) {
+} ]), angular.module("avRegistration").directive("avrDniField", [ "$state", "$location", function($state, $location) {
     function link(scope, element, attrs) {
-        scope.dni_re = /^[XYZ]?\d{7,8}[A-Z]$/, scope.validateDni = function(str) {
+        scope.dni_re = /^[XYZ]?\d{7,8}[A-Z]$/, scope.field.allow_url_get_param_prefill && $location.search()[scope.field.name] && (scope.field.value = $location.search()[scope.field.name]), 
+        scope.validateDni = function(str) {
             str || (str = ""), str = str.toUpperCase().replace(/\s/, "");
             var prefix = str.charAt(0), index = "XYZ".indexOf(prefix), niePrefix = 0;
             index > -1 && (niePrefix = index, str = str.substr(1), "Y" === prefix ? str = "1" + str : "Z" === prefix && (str = "2" + str));
@@ -380,9 +386,10 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         scope: !0,
         templateUrl: "avRegistration/fields/dni-field-directive/dni-field-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avrCodeField", [ "$state", "Plugins", function($state, Plugins) {
+} ]), angular.module("avRegistration").directive("avrCodeField", [ "$state", "$location", "Plugins", function($state, $location, Plugins) {
     function link(scope, element, attrs) {
         scope.codePattern = /[abcdefghjklmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8,8}/, 
+        scope.field.allow_url_get_param_prefill && $location.search()[scope.field.name] && (scope.field.value = $location.search()[scope.field.name]), 
         scope.showResendAuthCode = function() {
             var data = {
                 showUserSendAuthCode: !0
@@ -396,9 +403,9 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         link: link,
         templateUrl: "avRegistration/fields/code-field-directive/code-field-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avrTelField", [ "$state", function($state) {
+} ]), angular.module("avRegistration").directive("avrTelField", [ "$state", "$location", function($state, $location) {
     function link(scope, element, attrs) {
-        scope.tlfPattern = /^[+]?\d{9,14}$/;
+        scope.tlfPattern = /^[+]?\d{9,14}$/, scope.field.allow_url_get_param_prefill && $location.search()[scope.field.name] && $location.search()[scope.field.name].match(scope.tlfPattern) && (scope.field.value = $location.search()[scope.field.name]);
     }
     return {
         restrict: "AE",
@@ -406,15 +413,23 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         link: link,
         templateUrl: "avRegistration/fields/tel-field-directive/tel-field-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avrBoolField", [ "$state", function($state) {
+} ]), angular.module("avRegistration").directive("avrBoolField", [ "$state", "$location", function($state, $location) {
+    function link(scope, element, attrs) {
+        scope.field.allow_url_get_param_prefill && ("true" === $location.search()[scope.field.name] ? scope.field.value = !0 : "false" === $location.search()[scope.field.name] && (scope.field.value = !1));
+    }
     return {
         restrict: "AE",
+        link: link,
         scope: !0,
         templateUrl: "avRegistration/fields/bool-field-directive/bool-field-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avrIntField", [ "$state", function($state) {
+} ]), angular.module("avRegistration").directive("avrIntField", [ "$state", "$location", function($state, $location) {
     function link(scope, element, attrs) {
-        angular.isUndefined(scope.field.regex) ? scope.re = new RegExp("") : scope.re = new RegExp(scope.field.regex), 
+        if (angular.isUndefined(scope.field.regex) ? scope.re = new RegExp("") : scope.re = new RegExp(scope.field.regex), 
+        scope.field.allow_url_get_param_prefill && $location.search()[scope.field.name]) {
+            var val = $location.search()[scope.field.name];
+            val.match(scope.re) && (scope.field.value = $location.search()[scope.field.name]);
+        }
         scope.getRe = function(value) {
             return scope.re;
         };
@@ -435,10 +450,14 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         link: link,
         templateUrl: "avRegistration/fields/captcha-field-directive/captcha-field-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avrTextareaField", [ "$state", function($state) {
+} ]), angular.module("avRegistration").directive("avrTextareaField", [ "$state", "$location", function($state, $location) {
+    function link(scope, element, attrs) {
+        scope.field.allow_url_get_param_prefill && $location.search()[scope.field.name] && (scope.field.value = $location.search()[scope.field.name]);
+    }
     return {
         restrict: "AE",
         scope: !0,
+        link: link,
         templateUrl: "avRegistration/fields/textarea-field-directive/textarea-field-directive.html"
     };
 } ]), angular.module("avRegistration").directive("avrImageField", [ "$state", "$timeout", function($state, $timeout) {
@@ -648,7 +667,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
     }
     var checkCollapse = function(instance, el, options) {
         var maxHeight = select(instance, el, instance.maxHeightSelector).css("max-height"), height = angular.element(el)[0].scrollHeight;
-        if (maxHeight.indexOf("px") === -1) return void console.log("invalid non-pixels max-height for " + instance.maxHeightSelector);
+        if (-1 === maxHeight.indexOf("px")) return void console.log("invalid non-pixels max-height for " + instance.maxHeightSelector);
         if (maxHeight = parseInt(maxHeight.replace("px", "")), height > maxHeight) {
             if (instance.isCollapsed) return;
             instance.isCollapsed = !0, collapseEl(instance, el).addClass("collapsed"), select(instance, el, instance.toggleSelector).removeClass("hidden in");
@@ -741,7 +760,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         }
         if (void 0 === format && (format = "str"), 0 === total_votes) return print(0);
         var base = question.totals.valid_votes + question.totals.null_votes + question.totals.blank_votes;
-        return void 0 !== over && null !== over || (over = question.answer_total_votes_percentage), 
+        return (void 0 === over || null === over) && (over = question.answer_total_votes_percentage), 
         "over-valid-votes" === over && (base = question.totals.valid_votes), print(100 * total_votes / base);
     };
 }), angular.module("avUi").service("CheckerService", function() {
@@ -841,7 +860,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
                     prefix: sumStrs(d.prefix, item.prefix)
                 });
             }), !0));
-            return !(!pass && "chain" === d.data.groupType);
+            return pass || "chain" !== d.data.groupType ? !0 : !1;
         });
         return ret;
     }
@@ -850,8 +869,8 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
     return function(number, fixedDigits) {
         angular.isNumber(fixedDigits) && fixedDigits >= 0 && (number = number.toFixed(parseInt(fixedDigits)));
         var number_str = (number + "").replace(".", ","), ret = "", commaPos = number_str.length;
-        number_str.indexOf(",") !== -1 && (commaPos = number_str.indexOf(","));
-        for (var i = 0; i < commaPos; i++) {
+        -1 !== number_str.indexOf(",") && (commaPos = number_str.indexOf(","));
+        for (var i = 0; commaPos > i; i++) {
             var reverse = commaPos - i;
             reverse % 3 === 0 && reverse > 0 && i > 0 && (ret += "."), ret += number_str[i];
         }
@@ -861,7 +880,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
     return function(originString, searchString) {
         if (!angular.isString(originString) || !angular.isString(searchString)) return !1;
         var lastIndex = originString.indexOf(searchString);
-        return lastIndex !== -1 && lastIndex === originString.length - searchString.length;
+        return -1 !== lastIndex && lastIndex === originString.length - searchString.length;
     };
 }), angular.module("avUi").service("StateDataService", [ "$state", function($state) {
     var data = {};
@@ -987,7 +1006,7 @@ angular.module("jm.i18next").config([ "$i18nextProvider", "ConfigServiceProvider
 } ]), angular.module("agora-gui-common").run([ "$templateCache", function($templateCache) {
     "use strict";
     $templateCache.put("avRegistration/error.html", '<div av-simple-error><p ng-i18next="avRegistration.errorRegistration"></p></div>'), 
-    $templateCache.put("avRegistration/field-directive/field-directive.html", '<div ng-switch="field.type"><div avr-email-field ng-switch-when="email"></div><div avr-password-field ng-switch-when="password"></div><div avr-code-field ng-switch-when="code"></div><div avr-text-field ng-switch-when="text"></div><div avr-dni-field ng-switch-when="dni"></div><div avr-tel-field ng-switch-when="tlf"></div><div avr-int-field ng-switch-when="int"></div><div avr-bool-field ng-switch-when="bool"></div><div avr-captcha-field ng-switch-when="captcha"></div><div avr-textarea-field ng-switch-when="textarea"></div><div avr-image-field ng-switch-when="image"></div></div>'), 
+    $templateCache.put("avRegistration/field-directive/field-directive.html", '<div ng-switch="field.type" ng-class="{\'hidden\': !!field.hidden}"><div avr-email-field ng-switch-when="email"></div><div avr-password-field ng-switch-when="password"></div><div avr-code-field ng-switch-when="code"></div><div avr-text-field ng-switch-when="text"></div><div avr-dni-field ng-switch-when="dni"></div><div avr-tel-field ng-switch-when="tlf"></div><div avr-int-field ng-switch-when="int"></div><div avr-bool-field ng-switch-when="bool"></div><div avr-captcha-field ng-switch-when="captcha"></div><div avr-textarea-field ng-switch-when="textarea"></div><div avr-image-field ng-switch-when="image"></div></div>'), 
     $templateCache.put("avRegistration/fields/bool-field-directive/bool-field-directive.html", '<div class="form-group"><label class="control-label col-sm-4"><input type="checkbox" class="form-control" id="{{index}}Text" ng-model="field.value" ng-disabled="field.disabled" tabindex="{{index}}" ng-required="{{field.required}}"></label><div class="col-sm-8"><label class="text-left" for="{{index}}Text"><span ng-bind-html="field.name | addTargetBlank"></span></label><p class="help-block" ng-if="field.help" ng-bind-html="field.help | addTargetBlank"></p><div class="input-error"></div></div></div>'), 
     $templateCache.put("avRegistration/fields/captcha-field-directive/captcha-field-directive.html", '<div class="form-group"><div class="col-sm-8 col-sm-offset-4"><img ng-src="{{authMethod.captcha_image_url}}" style="width:161px;height:65px"></div><label for="{{index}}Text" class="control-label col-sm-4"><span>{{field.name}}</span></label><div class="col-sm-8"><input type="text" class="form-control" id="{{index}}Text" minlength="{{field.min}}" maxlength="{{field.max}}" ng-model="field.value" ng-disabled="field.disabled" tabindex="{{index}}" required><p class="help-block" ng-if="field.help">{{field.help}}</p><div class="input-error">{{authMethod.captcha_status}}</div></div></div>'), 
     $templateCache.put("avRegistration/fields/code-field-directive/code-field-directive.html", '<div class="form-group"><label for="input{{index}}" class="control-label col-sm-4" ng-i18next="avRegistration.codeLabel"></label><div class="col-sm-8"><input type="password" class="form-control" id="input{{index}}" ng-model="field.value" ng-disabled="field.disabled" tabindex="{{index}}" autocomplete="off" ng-class="{\'filled\': form[\'input\' + index].$viewValue.length > 0}" minlength="8" maxlength="8" ng-pattern="codePattern" name="input{{index}}" ng-i18next="[placeholder]avRegistration.codePlaceholder" required><p class="help-block" ng-i18next="avRegistration.codeHelp"></p><p class="help-block code-help"><span ng-if="showResendAuthCode() && !sendingData && !form[\'input\' + telIndex].$invalid"><b ng-i18next="avRegistration.noCodeReceivedQuestion"></b> <a ng-click="resendAuthCode(field)" ng-i18next="avRegistration.sendCodeAgain"></a> <span></span></span></p><div class="input-error"></div></div></div>'), 
