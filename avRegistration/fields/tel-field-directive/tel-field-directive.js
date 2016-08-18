@@ -16,9 +16,15 @@
 **/
 
 angular.module('avRegistration')
-  .directive('avrTelField', function($state) {
+  .directive('avrTelField', function($state, $location) {
     function link(scope, element, attrs) {
       scope.tlfPattern = /^[+]?\d{9,14}$/;
+      if (scope.field.allow_url_get_param_prefill &&
+        $location.search()[scope.field.name] &&
+        $location.search()[scope.field.name].match(scope.tlfPattern))
+      {
+        scope.field.value = $location.search()[scope.field.name];
+      }
     }
     return {
       restrict: 'AE',

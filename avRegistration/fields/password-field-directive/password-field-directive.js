@@ -15,11 +15,25 @@
  * along with agora-gui-common.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-angular.module('avRegistration')
-  .directive('avrPasswordField', function($state) {
-    return {
-      restrict: 'AE',
-      scope: true,
-      templateUrl: 'avRegistration/fields/password-field-directive/password-field-directive.html'
-    };
-  });
+angular
+  .module('avRegistration')
+  .directive(
+    'avrPasswordField',
+    function($state, $location)
+    {
+      function link(scope, element, attrs)
+      {
+        if (scope.field.allow_url_get_param_prefill &&
+          $location.search()[scope.field.name])
+        {
+          scope.field.value = $location.search()[scope.field.name];
+        }
+      }
+      return {
+        restrict: 'AE',
+        link: link,
+        scope: true,
+        templateUrl: 'avRegistration/fields/password-field-directive/password-field-directive.html'
+      };
+    }
+  );

@@ -15,24 +15,42 @@
  * along with agora-gui-common.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-angular.module('avRegistration')
-  .directive('avrIntField', function($state) {
-    function link(scope, element, attrs) {
-      if (angular.isUndefined(scope.field.regex)) {
-        scope.re = new RegExp("");
-      } else {
-        scope.re = new RegExp(scope.field.regex);
-      }
+angular
+  .module('avRegistration')
+  .directive(
+    'avrIntField',
+    function($state, $location)
+    {
+      function link(scope, element, attrs)
+      {
+        if (angular.isUndefined(scope.field.regex))
+        {
+          scope.re = new RegExp("");
+        } else
+        {
+          scope.re = new RegExp(scope.field.regex);
+        }
 
-      // returns true if regex matches or if there's no regex
-      scope.getRe = function(value) {
-        return scope.re;
+        if (scope.field.allow_url_get_param_prefill &&
+          $location.search()[scope.field.name])
+        {
+          var val = $location.search()[scope.field.name];
+          if (val.match(scope.re)) {
+            scope.field.value = $location.search()[scope.field.name];
+          }
+        }
+
+        // returns true if regex matches or if there's no regex
+        scope.getRe = function(value)
+        {
+          return scope.re;
+        };
+      }
+      return {
+        restrict: 'AE',
+        link: link,
+        scope: true,
+        templateUrl: 'avRegistration/fields/int-field-directive/int-field-directive.html'
       };
     }
-    return {
-      restrict: 'AE',
-      link: link,
-      scope: true,
-      templateUrl: 'avRegistration/fields/int-field-directive/int-field-directive.html'
-    };
-  });
+  );

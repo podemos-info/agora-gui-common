@@ -15,17 +15,30 @@
  * along with agora-gui-common.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-angular.module('avRegistration')
-  .directive('avrEmailField', function($state, Patterns) {
-    function link(scope, element, attrs) {
-        scope.patterns = function(name) {
-            return Patterns.get(name);
+angular
+  .module('avRegistration')
+  .directive(
+    'avrEmailField',
+    function($state, $location, Patterns)
+    {
+      function link(scope, element, attrs)
+      {
+        scope.patterns = function(name)
+        {
+          return Patterns.get(name);
         };
+
+        if (scope.field.allow_url_get_param_prefill &&
+          $location.search()[scope.field.name])
+        {
+          scope.field.value = $location.search()[scope.field.name];
+        }
+      }
+      return {
+        restrict: 'AE',
+        link: link,
+        scope: true,
+        templateUrl: 'avRegistration/fields/email-field-directive/email-field-directive.html'
+      };
     }
-    return {
-      restrict: 'AE',
-      link: link,
-      scope: true,
-      templateUrl: 'avRegistration/fields/email-field-directive/email-field-directive.html'
-    };
-  });
+  );

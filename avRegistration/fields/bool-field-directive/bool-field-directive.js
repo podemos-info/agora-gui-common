@@ -15,11 +15,30 @@
  * along with agora-gui-common.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-angular.module('avRegistration')
-  .directive('avrBoolField', function($state) {
-    return {
-      restrict: 'AE',
-      scope: true,
-      templateUrl: 'avRegistration/fields/bool-field-directive/bool-field-directive.html'
-    };
-  });
+angular
+  .module('avRegistration')
+  .directive(
+    'avrBoolField',
+    function($state, $location)
+    {
+      function link(scope, element, attrs) {
+        if (scope.field.allow_url_get_param_prefill)
+        {
+          if ($location.search()[scope.field.name] === 'true')
+          {
+            scope.field.value = true;
+          } else if ($location.search()[scope.field.name] === 'false')
+          {
+            scope.field.value = false;
+          }
+        }
+      }
+
+      return {
+        restrict: 'AE',
+        link: link,
+        scope: true,
+        templateUrl: 'avRegistration/fields/bool-field-directive/bool-field-directive.html'
+      };
+    }
+  );
