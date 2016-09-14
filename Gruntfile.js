@@ -237,7 +237,8 @@ module.exports = function (grunt) {
             "dist/locales/en.json": ["locales/en.json", "plugins/**/locales/en.json"],
             "dist/locales/es.json": ["locales/es.json", "plugins/**/locales/es.json"],
             "dist/locales/gl.json": ["locales/gl.json", "plugins/**/locales/gl.json"],
-            "dist/locales/ca.json": ["locales/ca.json", "plugins/**/locales/ca.json"]
+            "dist/locales/ca.json": ["locales/ca.json", "plugins/**/locales/ca.json"],
+            "dist/locales/ca.json": ["locales/nb.json", "plugins/**/locales/nb.json"]
         }
       }
     },

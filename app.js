@@ -51,7 +51,7 @@ angular.module('jm.i18next').config(function ($i18nextProvider, ConfigServicePro
       fallbackLng: 'en',
       cookieName: 'lang',
       detectLngQS: 'lang',
-      lngWhitelist: ['en', 'es', 'gl', 'ca'],
+      lngWhitelist: ['en', 'es', 'gl', 'ca', 'nb'],
       resGetPath: '/locales/__lng__.json',
       defaultLoadingValue: '' // ng-i18next option, *NOT* directly supported by i18next
     },
