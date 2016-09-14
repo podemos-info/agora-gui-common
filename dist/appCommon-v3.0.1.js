@@ -957,7 +957,7 @@ angular.module("jm.i18next").config([ "$i18nextProvider", "ConfigServiceProvider
         fallbackLng: "en",
         cookieName: "lang",
         detectLngQS: "lang",
-        lngWhitelist: [ "en", "es", "gl", "ca" ],
+        lngWhitelist: [ "en", "es", "gl", "ca", "nb" ],
         resGetPath: "/locales/__lng__.json",
         defaultLoadingValue: ""
     }, ConfigServiceProvider.i18nextInitOptions);
