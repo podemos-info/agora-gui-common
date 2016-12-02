@@ -18,15 +18,16 @@
 @import "../../external.less";
 
 /* Global Config */
-@av-primary: #007A72;
-@av-secondary: #167F54;
-@av-primary-contrast: white;
-@av-secondary-contrast: white;
+@av-primary: #FFFFFF;
+@av-secondary: #007A72;
+@av-primary-contrast: #959292;
+@av-secondary-contrast: #007B67;
 @brand-primary: @av-primary;
 @brand-success: @av-secondary;
 @link-color: @av-secondary;
-@text-success: @av-secondary;
+@text-success: @av-secondary-contrast;
 @state-success-text: @av-secondary;
+
 
 
 /* Admin Config */
@@ -44,27 +45,51 @@
   color: #333;
 }
 
-[ave-default-election] .avb-top-navbar a {
-  color: @av-secondary-contrast;
+[av-booth] {
+  .navbar, .navbar-unfixed-top, .busy-gui, .avb-content, .start-screen {
+    color: @av-secondary;
+  }
 }
 
-[ave-default-election] .avb-top-navbar .pull-right,
-[av-booth] [av-change-lang],
-[av-booth] .avb-top-navbar > .pull-right {
-  display: none;
+.modal-dialog .modal-header h4 {
+  color: @av-primary;
 }
 
-[ave-default-election] .avb-top-navbar > .text-center,
-[av-booth] .avb-top-navbar > .text-center {
-  text-align: right !important;
+.btn-success {
+  border: 0;
+  background-color: @av-primary-contrast;
 }
 
-img.logo-img {
-  padding-top: 5px;
+.btn-success:hover {
+  background-color: darken(@av-primary-contrast, 25%);
 }
 
-[av-booth] .basic-booth-layout .warnings .text-brand-primary,
-[av-booth] .warnings .text-brand-primary {
-  background-color: @av-secondary;
+.btn-transparent {
+  border-color: @av-primary-contrast !important;
+  color: @av-primary-contrast !important;
+
+  &:hover {
+    color: white !important;
+    background-color: @av-primary-contrast !important;
+    border-color: @av-primary-contrast !important;
+  }
 }
 
+
+[av-plurality-at-large-results] .table-hover>tbody>tr:hover>td, [av-plurality-at-large-results] .table-hover>tbody>tr:hover>th {
+    background-color: @av-primary-contrast !important;
+    color: @av-primary !important;
+}
+
+[avb-start-screen] .description a, [ave-default-election] .background .top-section p.election-description a, [ave-public-view] .background .top-section p.election-description a {
+  text-decoration: underline;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+/* disable this feature for now */
+[avr-code-field] .code-help {
+  display: none !important;
+}
