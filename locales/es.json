@@ -75,7 +75,7 @@
     "successRegistration": "Exitoso",
     "errorRegistration": "Error",
 
-    "invalidCredentials": "Credenciales no válidas",
+    "invalidCredentials": "Credenciales no válidas. Revisa que los datos que introdujiste son correctos. Una vez hayas votado no podrás volver a entrar.",
     "invalidDataRegEx": "Datos inválidos",
     "invalidDni": "DNI/NIE inválido",
     "dniHelp": "Introduce un DNI/NIE válido. Ejemplos: 12343567R o X01234356R",
