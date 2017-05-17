@@ -1,4 +1,4 @@
- /**
+/**
  * This file is part of agora-gui-common.
  * Copyright (C) 2015-2016  Agora Voting SL <agora@agoravoting.com>
 
