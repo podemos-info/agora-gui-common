@@ -40,6 +40,11 @@
 
 @import "../../app.less";
 
+[avb-accordion-option].selected.highlight-selected
+{
+    background-color: #444;
+}
+
 [ave-default-election] .navbar-fixed-top,
 [ave-public-view] .navbar-fixed-top,
 [ave-default-election] .background.first .top-section h1.election-title,
@@ -47,9 +52,13 @@
 [ave-default-election] .background.first .top-section ul.election-links>li>a,
 [ave-public-view] .background.first .top-section h1.election-title,
 [ave-public-view] .background.first .top-section ul.election-links>li.selected>a,
-[ave-public-view] .background.first .top-section ul.election-links>li>a
+[ave-public-view] .background.first .top-section ul.election-links>li>a,
+.basic-booth-layout .avb-top-navbar a,
+.basic-booth-layout .avb-top-navbar a:hover,
+[av-booth] .avb-top-navbar a,
+[av-booth] .avb-top-navbar a:hover
 {
-    color: @av-primary-contrast;
+    color: @av-primary-contrast !important;
 }
 
 [ave-default-election] .background .top-section,
