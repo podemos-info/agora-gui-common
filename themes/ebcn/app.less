@@ -40,6 +40,7 @@
 
 @import "../../app.less";
 
+
 [ave-default-election] .navbar-fixed-top,
 [ave-public-view] .navbar-fixed-top
 [ave-default-election] .background.first .top-section h1.election-title,
@@ -49,10 +50,7 @@
 [ave-public-view] .background.first .top-section ul.election-links>li.selected>a,
 [ave-public-view] .background.first .top-section ul.election-links>li>a
 {
-    color: @av-primary-contrast;
-    a {
-        color: @av-primary-contrast;
-    }
+    color: @av-primary-contrast !important;
 }
 
 [ave-default-election] .background .top-section,
@@ -62,7 +60,7 @@
 }
 
 [av-booth] {
-  .navbar, .navbar-unfixed-top, .busy-gui, .avb-content, .start-screen {
+  .navbar, .navbar-unfixed-top {
     color: @av-primary-contrast;
   }
 }
