@@ -19,7 +19,7 @@
 
 /* Global Config */
 @av-primary: #9e0054;
-@av-secondary: #FFFFFF;
+@av-secondary: #000000;
 @av-primary-contrast: #FFFFFF;
 @av-secondary-contrast: #FFFFFF;
 @brand-primary: @av-primary;
@@ -40,14 +40,30 @@
 
 @import "../../app.less";
 
+[ave-default-election] .navbar-fixed-top,
+[ave-public-view] .navbar-fixed-top
+[ave-default-election] .background.first .top-section h1.election-title,
+[ave-default-election] .background.first .top-section ul.election-links>li.selected>a,
+[ave-default-election] .background.first .top-section ul.election-links>li>a,
+[ave-public-view] .background.first .top-section h1.election-title,
+[ave-public-view] .background.first .top-section ul.election-links>li.selected>a,
+[ave-public-view] .background.first .top-section ul.election-links>li>a
+{
+    color: @av-primary-contrast;
+    a {
+        color: @av-primary-contrast;
+    }
+}
+
 [ave-default-election] .background .top-section,
 [ave-public-view] .background .top-section {
   color: #333;
+  background-color: @av-primary-contrast;
 }
 
 [av-booth] {
   .navbar, .navbar-unfixed-top, .busy-gui, .avb-content, .start-screen {
-    color: @av-secondary;
+    color: @av-primary-contrast;
   }
 }
 
@@ -55,13 +71,13 @@
   color: @av-primary;
 }
 
-.btn-success {
+.basic-booth-layout .btn-success, [av-booth] .btn-success, .btn-success {
   border: 0;
-  background-color: @av-primary-contrast;
+  background-color: #555353;
 }
 
-.btn-success:hover {
-  background-color: darken(@av-primary-contrast, 25%);
+.basic-booth-layout .btn-success:hover, [av-booth] .btn-success:hover, .btn-success:hover {
+  background-color: darken(#555353, 25%);
 }
 
 .btn-transparent {
