@@ -113,15 +113,15 @@
     <div class="col-sm-6" ng-if="method === 'openid-connect'">
         <span ng-repeat="provider in openIDConnectProviders">
           <a
-            href="{{}}"
+            ui-sref="election.public.show.login_openid_connect({id: eventId, provider: provider.id})"
             target="_blank"
-            alt="{{description}}"
+            alt="{{provider.description}}"
             class="btn btn-primary btn-twitter">
             <img
-              alt="{{description}}"
+              alt="{{provider.description}}"
               class="logo-img"
-              ng-src="{{icon}}" />
-            {{title}}
+              ng-src="{{provider.icon}}" />
+            {{provider.title}}
           </a>
         </span>
     </div>

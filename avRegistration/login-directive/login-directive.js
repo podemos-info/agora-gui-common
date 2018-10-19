@@ -36,7 +36,7 @@ angular.module('avRegistration')
       {
         scope.isCensusQuery = attrs.isCensusQuery;
         var adminId = ConfigService.freeAuthId + '';
-        var autheventid = attrs.eventId;
+        var autheventid = scope.eventId = attrs.eventId;
         scope.orgName = ConfigService.organization.orgName;
         scope.openIDConnectProviders = ConfigService.openIDConnectProviders;
 
