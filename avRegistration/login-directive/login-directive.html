@@ -110,7 +110,7 @@
       </p>
     </div>
 
-    <div class="col-sm-6" ng-if="method === 'openid-connect'">
+    <div class="col-sm-6 text-center" ng-if="method === 'openid-connect'">
         <span ng-repeat="provider in openIDConnectProviders">
           <a
             ui-sref="election.public.show.login_openid_connect({id: eventId, provider: provider.id})"
