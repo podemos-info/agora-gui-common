@@ -38,6 +38,7 @@ angular.module('avRegistration')
         var adminId = ConfigService.freeAuthId + '';
         var autheventid = attrs.eventId;
         scope.orgName = ConfigService.organization.orgName;
+        scope.openIDConnectProviders = ConfigService.openIDConnectProviders;
 
         // redirect from admin login to admin elections if login is not needed
         if (!!$cookies["authevent_" + adminId] && $cookies["authevent_" + adminId] === adminId &&

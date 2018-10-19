@@ -13,7 +13,7 @@
         </h2>
     </div>
 
-    <div class="col-sm-6">
+    <div class="col-sm-6" ng-if="method !== 'openid-connect'">
         <form name="form" id="loginForm" role="form" class="form-horizontal">
             <div
               ng-repeat="field in login_fields"
@@ -82,6 +82,7 @@
           </div>
         </form>
     </div>
+
     <div
       class="col-sm-5 col-sm-offset-1 hidden-xs"
       ng-if="registrationAllowed && !isCensusQuery">
@@ -107,6 +108,22 @@
         <br/>
         <span ng-i18next="avRegistration.fewMinutes"></span>
       </p>
+    </div>
+
+    <div class="col-sm-6" ng-if="method === 'openid-connect'">
+        <span ng-repeat="provider in openIDConnectProviders">
+          <a
+            href="{{}}"
+            target="_blank"
+            alt="{{description}}"
+            class="btn btn-primary btn-twitter">
+            <img
+              alt="{{description}}"
+              class="logo-img"
+              ng-src="{{icon}}" />
+            {{title}}
+          </a>
+        </span>
     </div>
   </div>
 </div>
