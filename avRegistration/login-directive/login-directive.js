@@ -320,7 +320,10 @@ angular.module('avRegistration')
               return;
             }
 
-            scope.loginUser(true);
+            if (scope.method !== 'openid-connect')
+            {
+              scope.loginUser(true);
+            }
 
         };
 

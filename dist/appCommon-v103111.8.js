@@ -467,7 +467,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             }), filled_fields = _.filter(fields, function(el) {
                 return null !== el.value;
             });
-            filled_fields.length === scope.login_fields.length && scope.loginUser(!0);
+            filled_fields.length === scope.login_fields.length && "openid-connect" !== scope.method && scope.loginUser(!0);
         }, scope.view = function(id) {
             Authmethod.viewEvent(id).success(function(data) {
                 "ok" === data.status ? scope.apply(data.events) : (scope.status = "Not found", document.querySelector(".input-error").style.display = "block");
