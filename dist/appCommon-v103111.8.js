@@ -335,7 +335,8 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         var randomness = validateCsrfToken(), uri = "?" + $window.location.hash;
         if (randomness && getURIParameter("state", uri) !== randomness) {
             var data = {
-                id_token: getURIParameter("id_token", uri)
+                id_token: getURIParameter("id_token", uri),
+                provider: $stateParams.provider
             };
             Authmethod.login(data, $scope.event_id).success(function(rcvData) {
                 if ("ok" !== rcvData.status) return void redirectToLogin();

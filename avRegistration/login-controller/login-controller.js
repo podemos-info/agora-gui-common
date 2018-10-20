@@ -147,7 +147,8 @@ angular.module('avRegistration')
           }
 
           var data = {
-              id_token: getURIParameter("id_token", uri)
+              id_token: getURIParameter("id_token", uri),
+              provider: $stateParams.provider
           };
 
           // Send the authentication request to our server
