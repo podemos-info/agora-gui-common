@@ -3,8 +3,13 @@
     <div class="col-sm-12 loginheader">
         <h2
           class="tex-center"
-          ng-if="!isCensusQuery"
+          ng-if="!isCensusQuery && method !== 'openid-connect'"
           ng-i18next="[i18next]({name: orgName})avRegistration.loginHeader">
+        </h2>
+        <h2
+          class="tex-center"
+          ng-if="!isCensusQuery && method === 'openid-connect'"
+          ng-i18next="[i18next]avRegistration.loginButton">
         </h2>
         <h2
           class="tex-center"
@@ -114,7 +119,6 @@
         <span ng-repeat="provider in openIDConnectProviders">
           <a
             ui-sref="election.public.show.login_openid_connect({id: eventId, provider: provider.id})"
-            target="_blank"
             alt="{{provider.description}}"
             class="btn btn-primary btn-twitter">
             <img
