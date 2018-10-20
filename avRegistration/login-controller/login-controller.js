@@ -26,7 +26,7 @@ angular.module('avRegistration')
       $cookies,
       $window,
       ConfigService,
-      AuthMethod)
+      Authmethod)
     {
       $scope.event_id = $stateParams.id;
       $scope.code = $stateParams.code;

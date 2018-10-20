@@ -307,7 +307,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         };
         return $http.post(backendUrl + "user/draft/", draft_data);
     }, authmethod;
-} ]), angular.module("avRegistration").controller("LoginController", [ "$scope", "$stateParams", "$filter", "$i18next", "$cookies", "$window", "ConfigService", "AuthMethod", function($scope, $stateParams, $filter, $i18next, $cookies, $window, ConfigService, AuthMethod) {
+} ]), angular.module("avRegistration").controller("LoginController", [ "$scope", "$stateParams", "$filter", "$i18next", "$cookies", "$window", "ConfigService", "Authmethod", function($scope, $stateParams, $filter, $i18next, $cookies, $window, ConfigService, Authmethod) {
     function redirectToLogin() {
         $window.location.href = "/election/" + $scope.event_id + "/public/login";
     }
