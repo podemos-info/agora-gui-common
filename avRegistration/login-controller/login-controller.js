@@ -31,6 +31,7 @@ angular.module('avRegistration')
       $scope.event_id = $stateParams.id;
       $scope.code = $stateParams.code;
       $scope.email = $stateParams.email;
+      $scope.provider = $stateParams.provider;
 
       // Maximum Oauth Login Timeout is 5 minutes
       var maxOAuthLoginTimeout = 1000 * 60 * 5;
