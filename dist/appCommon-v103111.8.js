@@ -368,8 +368,8 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             return null !== email.match(pattern);
         }
         function randomStr() {
-            var random = sjcl.random.randomWords(128, 0);
-            return sjcl.codec.utf8String.fromBits(random);
+            var random = sjcl.random.randomWords(64, 0);
+            return sjcl.codec.base64.fromBits(random);
         }
         scope.isCensusQuery = attrs.isCensusQuery;
         var adminId = ConfigService.freeAuthId + "", autheventid = scope.eventId = attrs.eventId;
