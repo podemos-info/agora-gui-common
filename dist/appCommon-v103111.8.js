@@ -308,55 +308,9 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         return $http.post(backendUrl + "user/draft/", draft_data);
     }, authmethod;
 } ]), angular.module("avRegistration").controller("LoginController", [ "$scope", "$stateParams", "$filter", "$i18next", "$cookies", "$window", "ConfigService", "Authmethod", function($scope, $stateParams, $filter, $i18next, $cookies, $window, ConfigService, Authmethod) {
-    function redirectToLogin() {
-        $window.location.href = "/election/" + $scope.event_id + "/public/login";
-    }
-    function validateCsrfToken() {
-        var postfix = "_authevent_" + $scope.event_id;
-        if (!$cookies["openid-connect-csrf" + postfix]) return redirectToLogin(), null;
-        var csrf = angular.fromJson($cookies["openid-connect-csrf" + postfix]), isCsrfValid = !csrf || !angular.isObject(csrf) || !angular.isString(csrf.randomState) || !angular.isString(csrf.randomNonce) || !angular.isNumber(csrf.created) || csrf.event_id !== $scope.event_id || csrf.created - Date.now() < maxOAuthLoginTimeout || csrf.randomState === $stateParams.randomState;
-        return isCsrfValid ? csrf.randomNonce : (redirectToLogin(), null);
-    }
-    function processOpenIdAuthRequest() {
-        var randomnNonce = validateCsrfToken();
-        if (randomnNonce) {
-            var provider = _.find(ConfigService.openIDConnectProviders, function(provider) {
-                return provider.id === $stateParams.provider;
-            });
-            if (!provider) return void redirectToLogin();
-            var authURI = provider.authorization_endpoint + "?response_type=id_token&scope=" + encodeURIComponent("openid email") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/election/" + $scope.event_id + "/home/login-openid-connect-redirect/" + $stateParams.provider + "/" + $stateParams.randomState + "/true") + "&state=" + randomness;
-            $window.location.href = authURI;
-        }
-    }
-    function getURIParameter(paramName, uri) {
-        var paramName2 = paramName.replace(/[\[\]]/g, "\\$&"), rx = new RegExp("[?&]" + paramName2 + "(=([^&#]*)|&|#|$)"), params = rx.exec(uri);
-        return params ? params[2] ? decodeURIComponent(params[2].replace(/\+/g, " ")) : "" : null;
-    }
-    function processOpenIdAuthCallback() {
-        var randomNonce = validateCsrfToken(), uri = "?" + $window.location.hash, data = {
-            id_token: getURIParameter("id_token", uri),
-            provider: $stateParams.provider,
-            nonce: randomNonce
-        };
-        Authmethod.login(data, $scope.event_id).success(function(rcvData) {
-            if ("ok" !== rcvData.status) return void redirectToLogin();
-            scope.khmac = rcvData.khmac;
-            var postfix = "_authevent_" + $scope.event_id;
-            $cookies["authevent_" + $scope.event_id] = $scope.event_id, $cookies["userid" + postfix] = rcvData.username, 
-            $cookies["user" + postfix] = scope.email, $cookies["auth" + postfix] = rcvData["auth-token"], 
-            $cookies["isAdmin" + postfix] = scope.isAdmin, Authmethod.setAuth($cookies["auth" + postfix], scope.isAdmin, $scope.event_id), 
-            angular.isDefined(rcvData["redirect-to-url"]) ? $window.location.href = rcvData["redirect-to-url"] : Authmethod.getPerm("vote", "AuthEvent", $scope.event_id).success(function(rcvData2) {
-                var khmac = rcvData2["permission-token"], path = khmac.split(";")[1], hash = path.split("/")[0], msg = path.split("/")[1];
-                $window.location.href = "/booth/" + $scope.event_id + "/vote/" + hash + "/" + msg;
-            });
-        }).error(function(error) {
-            redirectToLogin();
-        });
-    }
     $scope.event_id = $stateParams.id, $scope.code = $stateParams.code, $scope.email = $stateParams.email, 
-    $scope.provider = $stateParams.provider;
-    var maxOAuthLoginTimeout = 3e5;
-    "true" === $stateParams.is_redirect ? processOpenIdAuthCallback() : $stateParams.provider && $stateParams.randomState && processOpenIdAuthRequest();
+    $scope.provider = $stateParams.provider, $scope.randomState = $stateParams.randomState, 
+    $scope.is_redirect = $stateParams.is_redirect;
 } ]), angular.module("avRegistration").directive("avLogin", [ "Authmethod", "StateDataService", "$parse", "$state", "$location", "$cookies", "$i18next", "$window", "$timeout", "ConfigService", "Patterns", function(Authmethod, StateDataService, $parse, $state, $location, $cookies, $i18next, $window, $timeout, ConfigService, Patterns) {
     function link(scope, element, attrs) {
         function isValidTel(inputName) {
@@ -1390,8 +1344,9 @@ angular.module("jm.i18next").config([ "$i18nextProvider", "ConfigServiceProvider
     $templateCache.put("avRegistration/fields/text-field-directive/text-field-directive.html", '<ng-form name="fieldForm"><div class="form-group" ng-class="{\'has-error\': fieldForm.input.$dirty && fieldForm.input.$invalid}"><label for="input{{index}}" class="control-label col-sm-4"><span ng-if="field.name == \'username\'" ng-i18next="avRegistration.usernameLabel"></span> <span ng-if="field.name != \'username\'">{{field.name}}</span></label><div class="col-sm-8"><input type="text" name="input" id="input{{index}}" aria-label="input{{index}}-textarea" class="form-control" minlength="{{field.min}}" maxlength="{{field.max}}" ng-model="field.value" ng-model-options="{debounce: 500}" ng-disabled="field.disabled" tabindex="{{index}}" ng-pattern="getRe()" ng-required="{{field.required}}"><p class="help-block" ng-if="field.help">{{field.help}}</p><div class="input-error"><span class="error text-brand-danger" ng-show="fieldForm.input.$dirty && fieldForm.input.$invalid" ng-i18next="avRegistration.invalidDataRegEx"></span></div></div></div></ng-form>'), 
     $templateCache.put("avRegistration/fields/textarea-field-directive/textarea-field-directive.html", '<div class="form-group"><div class="col-sm-offset-2 col-sm-10"><textarea aria-label="{{index}}Text" id="{{index}}Text" rows="5" cols="60" tabindex="{{index}}" readonly>{{field.name}}</textarea><p class="help-block" ng-if="field.help">{{field.help}}</p></div></div>'), 
     $templateCache.put("avRegistration/loading.html", '<div avb-busy><p ng-i18next="avRegistration.loadingRegistration"></p></div>'), 
-    $templateCache.put("avRegistration/login-controller/login-controller.html", '<div class="col-xs-12 top-section"><div class="pad"><div av-login event-id="{{event_id}}" code="{{code}}" email="{{email}}" ng-if="!provider"></div></div></div>'), 
+    $templateCache.put("avRegistration/login-controller/login-controller.html", '<div class="col-xs-12 top-section"><div class="pad"><div av-login event-id="{{event_id}}" code="{{code}}" email="{{email}}" ng-if="!provider"><div av-openid-connect event-id="{{event_id}}" random-state="{{randomState}}" is-redirect="{{is_redirect}}" provider="{{provider}}" ng-if="provider"></div></div></div></div>'), 
     $templateCache.put("avRegistration/login-directive/login-directive.html", '<div class="container-fluid"><div class="row"><div class="col-sm-12 loginheader"><h2 class="tex-center" ng-if="!isCensusQuery && method !== \'openid-connect\'" ng-i18next="[i18next]({name: orgName})avRegistration.loginHeader"></h2><h2 class="tex-center" ng-if="!isCensusQuery && method === \'openid-connect\'" ng-i18next="[i18next]avRegistration.loginButton"></h2><h2 class="tex-center" ng-if="!!isCensusQuery" ng-i18next="avRegistration.censusQueryHeader"></h2></div><div class="col-sm-6" ng-if="method !== \'openid-connect\'"><form name="form" id="loginForm" role="form" class="form-horizontal"><div ng-repeat="field in login_fields" avr-field index="{{$index+1}}" ng-if="field.steps === undefined || field.steps.indexOf(currentFormStep) !== -1"></div><div class="col-sm-offset-4 col-sm-8 button-group"><div class="input-error" ng-if="!isCensusQuery"><div class="error text-danger" ng-if="error">{{ error }}</div></div><div class="input-warn"><span class="text-warning" ng-if="!form.$valid || sendingData" ng-i18next>avRegistration.fillValidFormText</span></div><button type="submit" class="btn btn-block btn-success" ng-if="!isCensusQuery" ng-i18next="avRegistration.loginButton" ng-click="loginUser(form.$valid)" tabindex="{{login_fields.length+1}}" ng-disabled="!form.$valid || sendingData"></button> <button type="submit" class="btn btn-block btn-success" ng-if="!!isCensusQuery" ng-i18next="avRegistration.checkCensusButton" ng-click="checkCensus(form.$valid)" tabindex="{{login_fields.length+1}}" ng-disabled="!form.$valid || sendingData"></button><div class="census-query" ng-if="isCensusQuery"><div class="input-info census-query" ng-if="censusQuery == \'querying\'"><div class="text-info" ng-i18next="avRegistration.censusQuerying"></div></div><div class="input-success census-query" ng-if="censusQuery == \'success\'"><div class="success text-success" ng-i18next="[html]avRegistration.censusSuccess"></div></div><div class="input-success census-query" ng-if="censusQuery == \'fail\'"><div class="error text-danger" ng-i18next="[html]avRegistration.censusFail"></div></div></div></div></form></div><div class="col-sm-5 col-sm-offset-1 hidden-xs" ng-if="registrationAllowed && !isCensusQuery  && method !== \'openid-connect\'"><h3 class="help-h3" ng-i18next="avRegistration.notRegisteredYet"></h3><p><a ng-if="!isAdmin" href="#/election/{{election.id}}/public/register" ng-i18next="avRegistration.registerHere" ng-click="goSignup()" tabindex="{{login_fields.length+2}}"></a><br><a ng-if="isAdmin" href="{{ signupLink }}" ng-i18next="avRegistration.registerHere" tabindex="{{login_fields.length+2}}"></a><br><span ng-i18next="avRegistration.fewMinutes"></span></p></div><div class="col-sm-12 text-center" ng-if="method === \'openid-connect\'"><span ng-repeat="provider in openIDConnectProviders"><a ng-click="openidConnectAuth(provider)" alt="{{provider.description}}" class="btn btn-primary btn-twitter"><img alt="{{provider.description}}" class="logo-img" ng-src="{{provider.icon}}"> {{provider.title}}</a></span></div></div></div>'), 
+    $templateCache.put("avRegistration/openid-connect-directive/openid-connect-directive.html", ""), 
     $templateCache.put("avRegistration/register-controller/register-controller.html", '<div class="col-xs-12 top-section"><div class="pad"><div av-register event-id="{{event_id}}" code="{{code}}" email="{{email}}"></div></div></div>'), 
     $templateCache.put("avRegistration/register-directive/register-directive.html", '<div class="container"><div class="row"><div class="col-sm-12"><h2 ng-if="!admin" class="registerheader" ng-i18next="avRegistration.registerHeader"></h2><h2 ng-if="admin" class="registerheader" ng-i18next="avRegistration.registerAdminHeader"></h2></div></div><div class="row"><div class="col-sm-6"><div ng-if="method == \'dnie\'"><a type="submit" class="btn btn-block btn-success" ng-i18next="avRegistration.registerButton" ng-href="{{ dnieurl }}/"></a></div><form ng-if="method != \'dnie\'" name="form" id="registerForm" role="form" class="form-horizontal"><div ng-repeat="field in register_fields" avr-field index="{{$index+1}}"></div><div class="col-sm-offset-4 col-sm-8 button-group"><div class="input-error"><div class="error text-danger" ng-if="error" ng-bind-html="error"></div></div><div class="input-warn"><span class="text-warning" ng-if="!form.$valid || sendingData" ng-i18next>avRegistration.fillValidFormText</span></div><button type="submit" class="btn btn-block btn-success" ng-i18next="avRegistration.registerButton" ng-click="signUp(form.$valid)" tabindex="{{register_fields.length+1}}" ng-disabled="!form.$valid || sendingData"></button></div></form></div><div class="col-sm-5 col-sm-offset-1 help-sidebar hidden-xs"><span><h3 class="help-h3" ng-i18next="avRegistration.registerAdminFormHelpTitle"></h3><p ng-i18next>avRegistration.helpAdminRegisterForm</p></span> <span><p ng-if="!admin" ng-i18next>avRegistration.helpRegisterForm</p><h3 class="help-h3" ng-i18next="avRegistration.alreadyRegistered"></h3><p ng-i18next>[html]avRegistration.helpAlreadyRegisteredForm</p><a href="" ng-click="goLogin($event)" ng-i18next="avRegistration.loginHere"></a><br></span></div></div></div>'), 
     $templateCache.put("avRegistration/success.html", '<div av-success><p ng-i18next="avRegistration.successRegistration"></p></div>'), 

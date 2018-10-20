@@ -1,6 +1,18 @@
 <div class="col-xs-12 top-section">
   <div class="pad">
-    <div av-login event-id="{{event_id}}" code="{{code}}" email="{{email}}" ng-if="!provider">
+    <div
+      av-login
+      event-id="{{event_id}}"
+      code="{{code}}"
+      email="{{email}}"
+      ng-if="!provider">
+    <div
+      av-openid-connect
+      event-id="{{event_id}}"
+      random-state="{{randomState}}"
+      is-redirect="{{is_redirect}}"
+      provider="{{provider}}"
+      ng-if="provider">
     </div>
   </div>
 </div>
