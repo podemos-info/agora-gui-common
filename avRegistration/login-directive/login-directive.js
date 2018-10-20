@@ -348,6 +348,28 @@ angular.module('avRegistration')
         scope.forgotPassword = function() {
             console.log('forgotPassword');
         };
+
+        // OpenIDConnect sets a cookie that is used to create a CSRF token
+        // similar to what is mentioned here:
+        // https://developers.google.com/identity/protocols/OpenIDConnect#createxsrftoken
+        scope.openidConnectAuth = function(provider)
+        {
+            // Generate cryptogrpahically secure random
+            /* jshint ignore:start */
+            var random = sjcl.random.randomWords(/* bitlength */ 4096 / 32, 0);
+            var randomStr = sjcl.codec.utf8String.fromBits(random);
+            /* jshint ignore:end */
+
+            $cookies['openid-connect-csrf'] = angular.toJson({
+              randomness: randomStr,
+              created: Date.now(),
+              electionId: scope.eventId
+            });
+            $state.go(
+              'election.public.show.login_openid_connect',
+              {id: scope.eventId, provider: provider.id, random: randomStr}
+            );
+        };
     }
     return {
       restrict: 'AE',
