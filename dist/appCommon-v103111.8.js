@@ -312,18 +312,19 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         $window.location.href = "/election/" + $scope.event_id + "/public/login";
     }
     function validateCsrfToken() {
-        if (!$cookies["openid-connect-csrf"]) return redirectToLogin(), null;
-        var csrf = angular.fromJson($cookies["openid-connect-csrf"]), isCsrfValid = !csrf || !angular.isObject(csrf) || !angular.isString(csrf.randomness) || !angular.isNumber(csrf.created) || csrf.event_id !== $scope.event_id || csrf.created - Date.now() < maxOAuthLoginTimeout || csrf.randomness === $stateParams.randomness;
-        return isCsrfValid ? csrf.randomness : (redirectToLogin(), null);
+        var postfix = "_authevent_" + $scope.event_id;
+        if (!$cookies["openid-connect-csrf" + postfix]) return redirectToLogin(), null;
+        var csrf = angular.fromJson($cookies["openid-connect-csrf" + postfix]), isCsrfValid = !csrf || !angular.isObject(csrf) || !angular.isString(csrf.randomState) || !angular.isString(csrf.randomNonce) || !angular.isNumber(csrf.created) || csrf.event_id !== $scope.event_id || csrf.created - Date.now() < maxOAuthLoginTimeout || csrf.randomState === $stateParams.randomState;
+        return isCsrfValid ? csrf.randomNonce : (redirectToLogin(), null);
     }
     function processOpenIdAuthRequest() {
-        var randomness = validateCsrfToken();
-        if (randomness) {
+        var randomnNonce = validateCsrfToken();
+        if (randomnNonce) {
             var provider = _.find(ConfigService.openIDConnectProviders, function(provider) {
                 return provider.id === $stateParams.provider;
             });
             if (!provider) return void redirectToLogin();
-            var authURI = provider.authorization_endpoint + "?response_type=id_token&scope=" + encodeURIComponent("openid email") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/election/" + $scope.event_id + "/home/login-openid-connect-redirect/" + $stateParams.provider + "/" + $stateParams.randomness + "/true") + "&state=" + randomness;
+            var authURI = provider.authorization_endpoint + "?response_type=id_token&scope=" + encodeURIComponent("openid email") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/election/" + $scope.event_id + "/home/login-openid-connect-redirect/" + $stateParams.provider + "/" + $stateParams.randomState + "/true") + "&state=" + randomness;
             $window.location.href = authURI;
         }
     }
@@ -332,31 +333,29 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         return params ? params[2] ? decodeURIComponent(params[2].replace(/\+/g, " ")) : "" : null;
     }
     function processOpenIdAuthCallback() {
-        var randomness = validateCsrfToken(), uri = "?" + $window.location.hash;
-        if (randomness && getURIParameter("state", uri) !== randomness) {
-            var data = {
-                id_token: getURIParameter("id_token", uri),
-                provider: $stateParams.provider
-            };
-            Authmethod.login(data, $scope.event_id).success(function(rcvData) {
-                if ("ok" !== rcvData.status) return void redirectToLogin();
-                scope.khmac = rcvData.khmac;
-                var postfix = "_authevent_" + $scope.event_id;
-                $cookies["authevent_" + $scope.event_id] = $scope.event_id, $cookies["userid" + postfix] = rcvData.username, 
-                $cookies["user" + postfix] = scope.email, $cookies["auth" + postfix] = rcvData["auth-token"], 
-                $cookies["isAdmin" + postfix] = scope.isAdmin, Authmethod.setAuth($cookies["auth" + postfix], scope.isAdmin, $scope.event_id), 
-                angular.isDefined(rcvData["redirect-to-url"]) ? $window.location.href = rcvData["redirect-to-url"] : Authmethod.getPerm("vote", "AuthEvent", $scope.event_id).success(function(rcvData2) {
-                    var khmac = rcvData2["permission-token"], path = khmac.split(";")[1], hash = path.split("/")[0], msg = path.split("/")[1];
-                    $window.location.href = "/booth/" + $scope.event_id + "/vote/" + hash + "/" + msg;
-                });
-            }).error(function(error) {
-                redirectToLogin();
+        var randomNonce = validateCsrfToken(), uri = "?" + $window.location.hash, data = {
+            id_token: getURIParameter("id_token", uri),
+            provider: $stateParams.provider,
+            nonce: randomNonce
+        };
+        Authmethod.login(data, $scope.event_id).success(function(rcvData) {
+            if ("ok" !== rcvData.status) return void redirectToLogin();
+            scope.khmac = rcvData.khmac;
+            var postfix = "_authevent_" + $scope.event_id;
+            $cookies["authevent_" + $scope.event_id] = $scope.event_id, $cookies["userid" + postfix] = rcvData.username, 
+            $cookies["user" + postfix] = scope.email, $cookies["auth" + postfix] = rcvData["auth-token"], 
+            $cookies["isAdmin" + postfix] = scope.isAdmin, Authmethod.setAuth($cookies["auth" + postfix], scope.isAdmin, $scope.event_id), 
+            angular.isDefined(rcvData["redirect-to-url"]) ? $window.location.href = rcvData["redirect-to-url"] : Authmethod.getPerm("vote", "AuthEvent", $scope.event_id).success(function(rcvData2) {
+                var khmac = rcvData2["permission-token"], path = khmac.split(";")[1], hash = path.split("/")[0], msg = path.split("/")[1];
+                $window.location.href = "/booth/" + $scope.event_id + "/vote/" + hash + "/" + msg;
             });
-        }
+        }).error(function(error) {
+            redirectToLogin();
+        });
     }
     $scope.event_id = $stateParams.id, $scope.code = $stateParams.code, $scope.email = $stateParams.email;
     var maxOAuthLoginTimeout = 3e5;
-    "true" === $stateParams.is_redirect ? processOpenIdAuthCallback() : $stateParams.provider && $stateParams.randomness && processOpenIdAuthRequest();
+    "true" === $stateParams.is_redirect ? processOpenIdAuthCallback() : $stateParams.provider && $stateParams.randomState && processOpenIdAuthRequest();
 } ]), angular.module("avRegistration").directive("avLogin", [ "Authmethod", "StateDataService", "$parse", "$state", "$location", "$cookies", "$i18next", "$window", "$timeout", "ConfigService", "Patterns", function(Authmethod, StateDataService, $parse, $state, $location, $cookies, $i18next, $window, $timeout, ConfigService, Patterns) {
     function link(scope, element, attrs) {
         function isValidTel(inputName) {
@@ -367,6 +366,10 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         function isValidEmail(email) {
             var pattern = Patterns.get("email");
             return null !== email.match(pattern);
+        }
+        function randomStr() {
+            var random = sjcl.random.randomWords(128, 0);
+            return sjcl.codec.utf8String.fromBits(random);
         }
         scope.isCensusQuery = attrs.isCensusQuery;
         var adminId = ConfigService.freeAuthId + "", autheventid = scope.eventId = attrs.eventId;
@@ -478,15 +481,16 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         }, scope.forgotPassword = function() {
             console.log("forgotPassword");
         }, scope.openidConnectAuth = function(provider) {
-            var random = sjcl.random.randomWords(128, 0), randomStr = sjcl.codec.utf8String.fromBits(random);
-            $cookies["openid-connect-csrf"] = angular.toJson({
-                randomness: randomStr,
+            var randomState = randomStr(), postfix = "_authevent_" + scope.eventId;
+            $cookies["openid-connect-csrf" + postfix] = angular.toJson({
+                randomState: randomState,
+                randomNonce: randomStr(),
                 created: Date.now(),
                 electionId: scope.eventId
             }), $state.go("election.public.show.login_openid_connect", {
                 id: scope.eventId,
                 provider: provider.id,
-                random: randomStr
+                random: randomState
             });
         };
     }

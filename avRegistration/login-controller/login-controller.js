@@ -44,36 +44,38 @@ angular.module('avRegistration')
       // validates the CSRF token
       function validateCsrfToken()
       {
-          if (!$cookies['openid-connect-csrf'])
+          var postfix = "_authevent_" + $scope.event_id;
+          if (!$cookies['openid-connect-csrf' + postfix])
           {
               redirectToLogin();
               return null;
           }
 
           // validate csrf token format and data
-          var csrf = angular.fromJson($cookies['openid-connect-csrf']);
+          var csrf = angular.fromJson($cookies['openid-connect-csrf' + postfix]);
           var isCsrfValid = (!csrf ||
             !angular.isObject(csrf) ||
-            !angular.isString(csrf.randomness) ||
+            !angular.isString(csrf.randomState) ||
+            !angular.isString(csrf.randomNonce) ||
             !angular.isNumber(csrf.created) ||
             csrf.event_id !== $scope.event_id ||
             csrf.created - Date.now() < maxOAuthLoginTimeout ||
-            csrf.randomness === $stateParams.randomness);
+            csrf.randomState === $stateParams.randomState);
 
           if (!isCsrfValid)
           {
               redirectToLogin();
               return null;
           }
-          return csrf.randomness;
+          return csrf.randomNonce;
       }
 
       // Process a call to openid authentication
       function processOpenIdAuthRequest()
       {
           // validate csrf token
-          var randomness = validateCsrfToken();
-          if (!randomness)
+          var randomnNonce = validateCsrfToken();
+          if (!randomnNonce)
           {
               return;
           }
@@ -102,7 +104,7 @@ angular.module('avRegistration')
                   $scope.event_id +
                   "/home/login-openid-connect-redirect/" +
                   $stateParams.provider + "/" +
-                  $stateParams.randomness + "/true"
+                  $stateParams.randomState + "/true"
 
               ) +
               "&state=" + randomness
@@ -138,17 +140,13 @@ angular.module('avRegistration')
       function processOpenIdAuthCallback()
       {
           // validate csrf token from uri and from state in the hash
-          var randomness = validateCsrfToken();
+          var randomNonce = validateCsrfToken();
           var uri = "?" + $window.location.hash;
-          if (!randomness || getURIParameter("state", uri) === randomness)
-          {
-              // TODO: show error
-              return;
-          }
 
           var data = {
               id_token: getURIParameter("id_token", uri),
-              provider: $stateParams.provider
+              provider: $stateParams.provider,
+              nonce: randomNonce
           };
 
           // Send the authentication request to our server
@@ -207,7 +205,7 @@ angular.module('avRegistration')
       }
       // This is an OpenID Connect authentication request, try to redirect
       // to the provider for authentication
-      else if ($stateParams.provider && $stateParams.randomness)
+      else if ($stateParams.provider && $stateParams.randomState)
       {
           processOpenIdAuthRequest();
       }
