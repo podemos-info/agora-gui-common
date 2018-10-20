@@ -208,4 +208,4 @@ angular.module('avRegistration')
 
 
       }
-    }
+    });
