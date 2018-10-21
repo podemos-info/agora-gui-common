@@ -440,7 +440,8 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
                 randomState: randomState,
                 randomNonce: randomNonce,
                 created: Date.now(),
-                electionId: scope.eventId
+                eventId: scope.eventId,
+                providerId: provider.id
             }), !provider) return void (scope.error = $i18next("avRegistration.openidError"));
             var authURI = provider.authorization_endpoint + "?response_type=id_token&client_id=" + encodeURIComponent(provider.client_id) + "&scope=" + encodeURIComponent("openid email") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/election/login-openid-connect-redirect") + "&state=" + randomState + "&nonce=" + randomNonce;
             $window.location.href = authURI;
@@ -460,31 +461,31 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         }
         function validateCsrfToken() {
             if (!$cookies["openid-connect-csrf"]) return redirectToLogin(), null;
-            var csrf = angular.fromJson($cookies["openid-connect-csrf"]), uri = "?" + $window.location.hash;
+            var csrf = scope.csrf = angular.fromJson($cookies["openid-connect-csrf"]), uri = "?" + $window.location.hash;
             $cookies["openid-connect-csrf"] = null;
             var isCsrfValid = !!csrf && angular.isObject(csrf) && angular.isString(csrf.randomState) && angular.isString(csrf.randomNonce) && angular.isNumber(csrf.created) && getURIParameter("nonce", uri) === csrf.randomNonce && csrf.created - Date.now() < maxOAuthLoginTimeout;
-            return isCsrfValid ? csrf.randomNonce : (redirectToLogin(), null);
+            return isCsrfValid ? !0 : (redirectToLogin(), null);
         }
         function getURIParameter(paramName, uri) {
             var paramName2 = paramName.replace(/[\[\]]/g, "\\$&"), rx = new RegExp("[?&]" + paramName2 + "(=([^&#]*)|&|#|$)"), params = rx.exec(uri);
             return params ? params[2] ? decodeURIComponent(params[2].replace(/\+/g, " ")) : "" : null;
         }
         function processOpenIdAuthCallback() {
-            var randomNonce = validateCsrfToken(), uri = "?" + $window.location.hash, data = {
+            var uri = (validateCsrfToken(), "?" + $window.location.hash), data = {
                 id_token: getURIParameter("id_token", uri),
-                provider: attrs.provider,
-                nonce: randomNonce
+                provider: scope.csrf.providerId,
+                nonce: scope.csrf.randomNonce
             };
-            Authmethod.login(data, attrs.eventId).success(function(rcvData) {
+            Authmethod.login(data, scope.csrf.eventId).success(function(rcvData) {
                 if ("ok" !== rcvData.status) return void redirectToLogin();
                 scope.khmac = rcvData.khmac;
-                var postfix = "_authevent_" + attrs.eventId;
-                $cookies["authevent_" + attrs.eventId] = attrs.eventId, $cookies["userid" + postfix] = rcvData.username, 
-                $cookies["user" + postfix] = scope.email, $cookies["auth" + postfix] = rcvData["auth-token"], 
-                $cookies["isAdmin" + postfix] = scope.isAdmin, Authmethod.setAuth($cookies["auth" + postfix], scope.isAdmin, attrs.eventId), 
-                angular.isDefined(rcvData["redirect-to-url"]) ? $window.location.href = rcvData["redirect-to-url"] : Authmethod.getPerm("vote", "AuthEvent", attrs.eventId).success(function(rcvData2) {
+                var postfix = "_authevent_" + scope.csrf.eventId;
+                $cookies["authevent_" + scope.csrf.eventId] = scope.csrf.eventId, $cookies["userid" + postfix] = rcvData.username, 
+                $cookies["user" + postfix] = rcvData.username, $cookies["auth" + postfix] = rcvData["auth-token"], 
+                $cookies["isAdmin" + postfix] = !1, Authmethod.setAuth($cookies["auth" + postfix], scope.isAdmin, scope.csrf.eventId), 
+                angular.isDefined(rcvData["redirect-to-url"]) ? $window.location.href = rcvData["redirect-to-url"] : Authmethod.getPerm("vote", "AuthEvent", scope.csrf.eventId).success(function(rcvData2) {
                     var khmac = rcvData2["permission-token"], path = khmac.split(";")[1], hash = path.split("/")[0], msg = path.split("/")[1];
-                    $window.location.href = "/booth/" + attrs.eventId + "/vote/" + hash + "/" + msg;
+                    $window.location.href = "/booth/" + scope.csrf.eventId + "/vote/" + hash + "/" + msg;
                 });
             }).error(function(error) {
                 redirectToLogin();

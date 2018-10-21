@@ -372,7 +372,8 @@ angular.module('avRegistration')
               randomState: randomState,
               randomNonce: randomNonce,
               created: Date.now(),
-              electionId: scope.eventId
+              eventId: scope.eventId,
+              providerId: provider.id
             });
 
             // find provider
