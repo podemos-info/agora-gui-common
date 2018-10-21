@@ -68,7 +68,7 @@ angular.module('avRegistration')
               angular.isString(csrf.randomState) &&
               angular.isString(csrf.randomNonce) &&
               angular.isNumber(csrf.created) &&
-              getURIParameter("nonce", uri) === csrf.randomNonce &&
+              getURIParameter("state", uri) === csrf.randomState &&
               csrf.created - Date.now() < maxOAuthLoginTimeout
             );
 
