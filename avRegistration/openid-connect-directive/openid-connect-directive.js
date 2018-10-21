@@ -19,7 +19,6 @@ angular.module('avRegistration')
   .directive(
     'avOpenidConnect',
     function(
-      $scope,
       $cookies,
       $window,
       ConfigService,

@@ -455,7 +455,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         link: link,
         templateUrl: "avRegistration/login-directive/login-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avOpenidConnect", [ "$scope", "$cookies", "$window", "ConfigService", "Authmethod", function($scope, $cookies, $window, ConfigService, Authmethod) {
+} ]), angular.module("avRegistration").directive("avOpenidConnect", [ "$cookies", "$window", "ConfigService", "Authmethod", function($cookies, $window, ConfigService, Authmethod) {
     function link(scope, element, attrs) {
         function redirectToLogin() {
             $window.location.href = "/election/" + attrs.eventId + "/public/login";
