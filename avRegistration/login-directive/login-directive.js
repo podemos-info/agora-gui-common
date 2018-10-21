@@ -364,7 +364,7 @@ angular.module('avRegistration')
         // OpenIDConnect sets a cookie that is used to create a CSRF token
         // similar to what is mentioned here:
         // https://developers.google.com/identity/protocols/OpenIDConnect#createxsrftoken
-        scope.openidConnectAuth = function(provider)
+        scope.openidConnectAuth = function(providerId)
         {
             var randomState = randomStr();
             var randomNonce = randomStr();
@@ -378,7 +378,7 @@ angular.module('avRegistration')
             // get provider from config list
             var provider = _.find(
                 ConfigService.openIDConnectProviders,
-                function (provider) { return provider.id === attrs.provider; }
+                function (provider) { return provider.id === providerId; }
             );
 
             // find provider
