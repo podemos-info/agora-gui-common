@@ -31,8 +31,6 @@ angular.module('avRegistration')
       $scope.event_id = $stateParams.id;
       $scope.code = $stateParams.code;
       $scope.email = $stateParams.email;
-      $scope.provider = $stateParams.provider;
-      $scope.randomState = $stateParams.randomState;
-      $scope.is_redirect = $stateParams.is_redirect;
+      $scope.isOpenId = $stateParams.isOpenId;
     }
   );

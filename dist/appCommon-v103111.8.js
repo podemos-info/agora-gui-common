@@ -309,8 +309,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
     }, authmethod;
 } ]), angular.module("avRegistration").controller("LoginController", [ "$scope", "$stateParams", "$filter", "$i18next", "$cookies", "$window", "ConfigService", "Authmethod", function($scope, $stateParams, $filter, $i18next, $cookies, $window, ConfigService, Authmethod) {
     $scope.event_id = $stateParams.id, $scope.code = $stateParams.code, $scope.email = $stateParams.email, 
-    $scope.provider = $stateParams.provider, $scope.randomState = $stateParams.randomState, 
-    $scope.is_redirect = $stateParams.is_redirect;
+    $scope.isOpenId = $stateParams.isOpenId;
 } ]), angular.module("avRegistration").directive("avLogin", [ "Authmethod", "StateDataService", "$parse", "$state", "$location", "$cookies", "$i18next", "$window", "$timeout", "ConfigService", "Patterns", function(Authmethod, StateDataService, $parse, $state, $location, $cookies, $i18next, $window, $timeout, ConfigService, Patterns) {
     function link(scope, element, attrs) {
         function isValidTel(inputName) {
@@ -436,17 +435,19 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         }, scope.forgotPassword = function() {
             console.log("forgotPassword");
         }, scope.openidConnectAuth = function(provider) {
-            var randomState = randomStr(), postfix = "_authevent_" + scope.eventId;
-            $cookies["openid-connect-csrf" + postfix] = angular.toJson({
+            var randomState = randomStr(), randomNonce = randomStr();
+            $cookies["openid-connect-csrf"] = angular.toJson({
                 randomState: randomState,
-                randomNonce: randomStr(),
+                randomNonce: randomNonce,
                 created: Date.now(),
                 electionId: scope.eventId
-            }), $state.go("election.public.show.login_openid_connect", {
-                id: scope.eventId,
-                provider: provider.id,
-                randomState: randomState
             });
+            var provider = _.find(ConfigService.openIDConnectProviders, function(provider) {
+                return provider.id === attrs.provider;
+            });
+            if (!provider) return void (scope.error = $i18next("avRegistration.openidError"));
+            var authURI = provider.authorization_endpoint + "?response_type=id_token&client_id=" + encodeURIComponent(provider.client_id) + "&scope=" + encodeURIComponent("openid email") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/login-openid-connect-redirect/") + "&state=" + randomState + "&nonce=" + randomNonce;
+            $window.location.href = authURI;
         };
     }
     return {
@@ -455,27 +456,20 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         link: link,
         templateUrl: "avRegistration/login-directive/login-directive.html"
     };
-} ]), angular.module("avRegistration").directive("avOpenidConnect", [ "$cookies", "$window", "ConfigService", "Authmethod", function($cookies, $window, ConfigService, Authmethod) {
+} ]), angular.module("avRegistration").directive("avOpenidConnect", [ "$cookies", "$window", "$location", "ConfigService", "Authmethod", function($cookies, $window, $location, ConfigService, Authmethod) {
     function link(scope, element, attrs) {
         function redirectToLogin() {
-            $window.location.href = "/election/" + attrs.eventId + "/public/login";
+            var eventId = null;
+            if ($cookies["openid-connect-csrf"]) {
+                var csrf = angular.fromJson($cookies["openid-connect-csrf"]);
+                eventId = csrf.eventId;
+            }
+            eventId ? $window.location.href = "/election/" + eventId + "/public/login" : $window.location.href = "/";
         }
         function validateCsrfToken() {
-            var postfix = "_authevent_" + attrs.eventId;
-            if (!$cookies["openid-connect-csrf" + postfix]) return redirectToLogin(), null;
-            var csrf = angular.fromJson($cookies["openid-connect-csrf" + postfix]), isCsrfValid = !csrf || !angular.isObject(csrf) || !angular.isString(csrf.randomState) || !angular.isString(csrf.randomNonce) || !angular.isNumber(csrf.created) || csrf.event_id !== attrs.eventId || csrf.created - Date.now() < maxOAuthLoginTimeout || csrf.randomState === attrs.randomState;
+            if (!$cookies["openid-connect-csrf"]) return redirectToLogin(), null;
+            var csrf = angular.fromJson($cookies["openid-connect-csrf"]), isCsrfValid = !!csrf && angular.isObject(csrf) && angular.isString(csrf.randomState) && angular.isString(csrf.randomNonce) && angular.isNumber(csrf.created) && $location.search().nonce === csrf.randomNonce && csrf.created - Date.now() < maxOAuthLoginTimeout;
             return isCsrfValid ? csrf.randomNonce : (redirectToLogin(), null);
-        }
-        function processOpenIdAuthRequest() {
-            var randomnNonce = validateCsrfToken();
-            if (randomnNonce) {
-                var provider = _.find(ConfigService.openIDConnectProviders, function(provider) {
-                    return provider.id === attrs.provider;
-                });
-                if (!provider) return void redirectToLogin();
-                var authURI = provider.authorization_endpoint + "?response_type=id_token&client_id=" + encodeURIComponent(provider.client_id) + "&scope=" + encodeURIComponent("openid email") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/election/" + attrs.eventId + "/home/login-openid-connect-redirect/" + attrs.provider + "/" + attrs.randomState + "/true") + "&state=" + attrs.randomState;
-                $window.location.href = authURI;
-            }
         }
         function getURIParameter(paramName, uri) {
             var paramName2 = paramName.replace(/[\[\]]/g, "\\$&"), rx = new RegExp("[?&]" + paramName2 + "(=([^&#]*)|&|#|$)"), params = rx.exec(uri);
@@ -503,7 +497,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             });
         }
         var maxOAuthLoginTimeout = 3e5;
-        "true" === attrs.isRedirect ? processOpenIdAuthCallback() : attrs.provider && attrs.randomState && processOpenIdAuthRequest();
+        processOpenIdAuthCallback();
     }
     return {
         restrict: "AE",
@@ -1400,7 +1394,7 @@ angular.module("jm.i18next").config([ "$i18nextProvider", "ConfigServiceProvider
     $templateCache.put("avRegistration/fields/text-field-directive/text-field-directive.html", '<ng-form name="fieldForm"><div class="form-group" ng-class="{\'has-error\': fieldForm.input.$dirty && fieldForm.input.$invalid}"><label for="input{{index}}" class="control-label col-sm-4"><span ng-if="field.name == \'username\'" ng-i18next="avRegistration.usernameLabel"></span> <span ng-if="field.name != \'username\'">{{field.name}}</span></label><div class="col-sm-8"><input type="text" name="input" id="input{{index}}" aria-label="input{{index}}-textarea" class="form-control" minlength="{{field.min}}" maxlength="{{field.max}}" ng-model="field.value" ng-model-options="{debounce: 500}" ng-disabled="field.disabled" tabindex="{{index}}" ng-pattern="getRe()" ng-required="{{field.required}}"><p class="help-block" ng-if="field.help">{{field.help}}</p><div class="input-error"><span class="error text-brand-danger" ng-show="fieldForm.input.$dirty && fieldForm.input.$invalid" ng-i18next="avRegistration.invalidDataRegEx"></span></div></div></div></ng-form>'), 
     $templateCache.put("avRegistration/fields/textarea-field-directive/textarea-field-directive.html", '<div class="form-group"><div class="col-sm-offset-2 col-sm-10"><textarea aria-label="{{index}}Text" id="{{index}}Text" rows="5" cols="60" tabindex="{{index}}" readonly>{{field.name}}</textarea><p class="help-block" ng-if="field.help">{{field.help}}</p></div></div>'), 
     $templateCache.put("avRegistration/loading.html", '<div avb-busy><p ng-i18next="avRegistration.loadingRegistration"></p></div>'), 
-    $templateCache.put("avRegistration/login-controller/login-controller.html", '<div class="col-xs-12 top-section"><div class="pad"><div av-login event-id="{{event_id}}" code="{{code}}" email="{{email}}" ng-if="!provider"></div><div av-openid-connect event-id="{{event_id}}" random-state="{{randomState}}" is-redirect="{{is_redirect}}" provider="{{provider}}" ng-if="provider"></div></div></div>'), 
+    $templateCache.put("avRegistration/login-controller/login-controller.html", '<div class="col-xs-12 top-section"><div class="pad"><div av-login event-id="{{event_id}}" code="{{code}}" email="{{email}}" ng-if="!isOpenId"></div><div av-openid-connect ng-if="isOpenId"></div></div></div>'), 
     $templateCache.put("avRegistration/login-directive/login-directive.html", '<div class="container-fluid"><div class="row"><div class="col-sm-12 loginheader"><h2 class="tex-center" ng-if="!isCensusQuery && method !== \'openid-connect\'" ng-i18next="[i18next]({name: orgName})avRegistration.loginHeader"></h2><h2 class="tex-center" ng-if="!isCensusQuery && method === \'openid-connect\'" ng-i18next="[i18next]avRegistration.loginButton"></h2><h2 class="tex-center" ng-if="!!isCensusQuery" ng-i18next="avRegistration.censusQueryHeader"></h2></div><div class="col-sm-6" ng-if="method !== \'openid-connect\'"><form name="form" id="loginForm" role="form" class="form-horizontal"><div ng-repeat="field in login_fields" avr-field index="{{$index+1}}" ng-if="field.steps === undefined || field.steps.indexOf(currentFormStep) !== -1"></div><div class="col-sm-offset-4 col-sm-8 button-group"><div class="input-error" ng-if="!isCensusQuery"><div class="error text-danger" ng-if="error">{{ error }}</div></div><div class="input-warn"><span class="text-warning" ng-if="!form.$valid || sendingData" ng-i18next>avRegistration.fillValidFormText</span></div><button type="submit" class="btn btn-block btn-success" ng-if="!isCensusQuery" ng-i18next="avRegistration.loginButton" ng-click="loginUser(form.$valid)" tabindex="{{login_fields.length+1}}" ng-disabled="!form.$valid || sendingData"></button> <button type="submit" class="btn btn-block btn-success" ng-if="!!isCensusQuery" ng-i18next="avRegistration.checkCensusButton" ng-click="checkCensus(form.$valid)" tabindex="{{login_fields.length+1}}" ng-disabled="!form.$valid || sendingData"></button><div class="census-query" ng-if="isCensusQuery"><div class="input-info census-query" ng-if="censusQuery == \'querying\'"><div class="text-info" ng-i18next="avRegistration.censusQuerying"></div></div><div class="input-success census-query" ng-if="censusQuery == \'success\'"><div class="success text-success" ng-i18next="[html]avRegistration.censusSuccess"></div></div><div class="input-success census-query" ng-if="censusQuery == \'fail\'"><div class="error text-danger" ng-i18next="[html]avRegistration.censusFail"></div></div></div></div></form></div><div class="col-sm-5 col-sm-offset-1 hidden-xs" ng-if="registrationAllowed && !isCensusQuery  && method !== \'openid-connect\'"><h3 class="help-h3" ng-i18next="avRegistration.notRegisteredYet"></h3><p><a ng-if="!isAdmin" href="#/election/{{election.id}}/public/register" ng-i18next="avRegistration.registerHere" ng-click="goSignup()" tabindex="{{login_fields.length+2}}"></a><br><a ng-if="isAdmin" href="{{ signupLink }}" ng-i18next="avRegistration.registerHere" tabindex="{{login_fields.length+2}}"></a><br><span ng-i18next="avRegistration.fewMinutes"></span></p></div><div class="col-sm-12 text-center" ng-if="method === \'openid-connect\'"><span ng-repeat="provider in openIDConnectProviders"><a ng-click="openidConnectAuth(provider)" alt="{{provider.description}}" class="btn btn-primary btn-twitter"><img alt="{{provider.description}}" class="logo-img" ng-src="{{provider.icon}}"> {{provider.title}}</a></span></div></div></div>'), 
     $templateCache.put("avRegistration/openid-connect-directive/openid-connect-directive.html", ""), 
     $templateCache.put("avRegistration/register-controller/register-controller.html", '<div class="col-xs-12 top-section"><div class="pad"><div av-register event-id="{{event_id}}" code="{{code}}" email="{{email}}"></div></div></div>'), 

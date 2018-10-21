@@ -21,6 +21,7 @@ angular.module('avRegistration')
     function(
       $cookies,
       $window,
+      $location,
       ConfigService,
       Authmethod
     ) {
@@ -33,29 +34,39 @@ angular.module('avRegistration')
         // Redirects to the login page of the respective event_id
         function redirectToLogin()
         {
-            $window.location.href = "/election/" + attrs.eventId + "/public/login";
+            var eventId = null;
+            if ($cookies['openid-connect-csrf'])
+            {
+              var csrf = angular.fromJson($cookies['openid-connect-csrf']);
+              eventId = csrf.eventId;
+            }
+
+            if (eventId) {
+              $window.location.href = "/election/" + eventId + "/public/login";
+            } else {
+              $window.location.href = "/";
+            }
         }
 
         // validates the CSRF token
         function validateCsrfToken()
         {
-            var postfix = "_authevent_" + attrs.eventId;
-            if (!$cookies['openid-connect-csrf' + postfix])
+            if (!$cookies['openid-connect-csrf'])
             {
                 redirectToLogin();
                 return null;
             }
 
             // validate csrf token format and data
-            var csrf = angular.fromJson($cookies['openid-connect-csrf' + postfix]);
-            var isCsrfValid = (!csrf ||
-              !angular.isObject(csrf) ||
-              !angular.isString(csrf.randomState) ||
-              !angular.isString(csrf.randomNonce) ||
-              !angular.isNumber(csrf.created) ||
-              csrf.event_id !== attrs.eventId ||
-              csrf.created - Date.now() < maxOAuthLoginTimeout ||
-              csrf.randomState === attrs.randomState);
+            var csrf = angular.fromJson($cookies['openid-connect-csrf']);
+            var isCsrfValid = (!!csrf &&
+              angular.isObject(csrf) &&
+              angular.isString(csrf.randomState) &&
+              angular.isString(csrf.randomNonce) &&
+              angular.isNumber(csrf.created) &&
+              $location.search().nonce === csrf.randomNonce &&
+              csrf.created - Date.now() < maxOAuthLoginTimeout
+            );
 
             if (!isCsrfValid)
             {
@@ -63,51 +74,6 @@ angular.module('avRegistration')
                 return null;
             }
             return csrf.randomNonce;
-        }
-
-        // Process a call to openid authentication
-        function processOpenIdAuthRequest()
-        {
-            // validate csrf token
-            var randomnNonce = validateCsrfToken();
-            if (!randomnNonce)
-            {
-                return;
-            }
-
-            // get provider from config list
-            var provider = _.find(
-                ConfigService.openIDConnectProviders,
-                function (provider) { return provider.id === attrs.provider; }
-            );
-
-            // find provider
-            if (!provider)
-            {
-                // TODO: show error
-                redirectToLogin();
-                return;
-            }
-
-            // Craft the OpenID Connect auth URI
-            var authURI = (provider.authorization_endpoint +
-                "?response_type=id_token" +
-                "&client_id=" + encodeURIComponent(provider.client_id) +
-                "&scope=" + encodeURIComponent("openid email") +
-                "&redirect_uri=" + encodeURIComponent(
-                    $window.location.origin +
-                    "/election/" +
-                    attrs.eventId +
-                    "/home/login-openid-connect-redirect/" +
-                    attrs.provider + "/" +
-                    attrs.randomState + "/true"
-
-                ) +
-                "&state=" + attrs.randomState
-            );
-
-            // Redirect to the Auth URI
-            $window.location.href = authURI;
         }
 
         // Get the decoded value of a uri parameter from any uri. The uri does not
@@ -192,19 +158,7 @@ angular.module('avRegistration')
                 });
         }
 
-        // This is an OpenId Connect callback coming from the provider, try to
-        // validate the callback data and get the authentication token from our
-        // server and redirect to vote
-        if (attrs.isRedirect === "true")
-        {
-            processOpenIdAuthCallback();
-        }
-        // This is an OpenID Connect authentication request, try to redirect
-        // to the provider for authentication
-        else if (attrs.provider && attrs.randomState)
-        {
-            processOpenIdAuthRequest();
-        }
+        processOpenIdAuthCallback();
       }
       return {
         restrict: 'AE',

@@ -367,17 +367,42 @@ angular.module('avRegistration')
         scope.openidConnectAuth = function(provider)
         {
             var randomState = randomStr();
-            var postfix = "_authevent_" + scope.eventId;
-            $cookies['openid-connect-csrf'  + postfix] = angular.toJson({
+            var randomNonce = randomStr();
+            $cookies['openid-connect-csrf'] = angular.toJson({
               randomState: randomState,
-              randomNonce: randomStr(),
+              randomNonce: randomNonce,
               created: Date.now(),
               electionId: scope.eventId
             });
-            $state.go(
-              'election.public.show.login_openid_connect',
-              {id: scope.eventId, provider: provider.id, randomState: randomState}
+
+            // get provider from config list
+            var provider = _.find(
+                ConfigService.openIDConnectProviders,
+                function (provider) { return provider.id === attrs.provider; }
             );
+
+            // find provider
+            if (!provider)
+            {
+                scope.error = $i18next('avRegistration.openidError');
+                return;
+            }
+
+            // Craft the OpenID Connect auth URI
+            var authURI = (provider.authorization_endpoint +
+                "?response_type=id_token" +
+                "&client_id=" + encodeURIComponent(provider.client_id) +
+                "&scope=" + encodeURIComponent("openid email") +
+                "&redirect_uri=" + encodeURIComponent(
+                    $window.location.origin +
+                    "/login-openid-connect-redirect/"
+                ) +
+                "&state=" + randomState +
+                "&nonce=" + randomNonce
+            );
+
+            // Redirect to the Auth URI
+            $window.location.href = authURI;
         };
     }
     return {
