@@ -445,7 +445,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             }), $state.go("election.public.show.login_openid_connect", {
                 id: scope.eventId,
                 provider: provider.id,
-                random: randomState
+                randomState: randomState
             });
         };
     }

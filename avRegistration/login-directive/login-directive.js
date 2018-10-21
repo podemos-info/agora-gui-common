@@ -376,7 +376,7 @@ angular.module('avRegistration')
             });
             $state.go(
               'election.public.show.login_openid_connect',
-              {id: scope.eventId, provider: provider.id, random: randomState}
+              {id: scope.eventId, provider: provider.id, randomState: randomState}
             );
         };
     }
