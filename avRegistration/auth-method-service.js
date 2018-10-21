@@ -384,15 +384,6 @@ angular.module('avRegistration')
               "required": true,
               "required_on_authentication": true
             });
-          } else if (viewEventData.auth_method === "openid-connect") {
-            fields.push({
-              "name": "sub",
-              "type": "text",
-              "required": rrue,
-              "min": 1,
-              "max": 255,
-              "required_on_authentication": true
-            });
           }
 
           // put captcha the last
