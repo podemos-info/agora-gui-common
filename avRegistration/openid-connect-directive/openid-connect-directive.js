@@ -102,7 +102,7 @@ angular.module('avRegistration')
                     attrs.randomState + "/true"
 
                 ) +
-                "&state=" + randomness
+                "&state=" + attrs.randomState
             );
 
             // Redirect to the Auth URI

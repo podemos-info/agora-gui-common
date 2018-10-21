@@ -473,7 +473,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
                     return provider.id === attrs.provider;
                 });
                 if (!provider) return void redirectToLogin();
-                var authURI = provider.authorization_endpoint + "?response_type=id_token&scope=" + encodeURIComponent("openid email") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/election/" + attrs.eventId + "/home/login-openid-connect-redirect/" + attrs.provider + "/" + attrs.randomState + "/true") + "&state=" + randomness;
+                var authURI = provider.authorization_endpoint + "?response_type=id_token&scope=" + encodeURIComponent("openid email") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/election/" + attrs.eventId + "/home/login-openid-connect-redirect/" + attrs.provider + "/" + attrs.randomState + "/true") + "&state=" + attrs.randomState;
                 $window.location.href = authURI;
             }
         }
