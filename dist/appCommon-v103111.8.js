@@ -434,18 +434,14 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             });
         }, scope.forgotPassword = function() {
             console.log("forgotPassword");
-        }, scope.openidConnectAuth = function(providerId) {
+        }, scope.openidConnectAuth = function(provider) {
             var randomState = randomStr(), randomNonce = randomStr();
-            $cookies["openid-connect-csrf"] = angular.toJson({
+            if ($cookies["openid-connect-csrf"] = angular.toJson({
                 randomState: randomState,
                 randomNonce: randomNonce,
                 created: Date.now(),
                 electionId: scope.eventId
-            });
-            var provider = _.find(ConfigService.openIDConnectProviders, function(provider) {
-                return provider.id === providerId;
-            });
-            if (!provider) return void (scope.error = $i18next("avRegistration.openidError"));
+            }), !provider) return void (scope.error = $i18next("avRegistration.openidError"));
             var authURI = provider.authorization_endpoint + "?response_type=id_token&client_id=" + encodeURIComponent(provider.client_id) + "&scope=" + encodeURIComponent("openid email") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/login-openid-connect-redirect/") + "&state=" + randomState + "&nonce=" + randomNonce;
             $window.location.href = authURI;
         };
