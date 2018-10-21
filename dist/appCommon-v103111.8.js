@@ -509,7 +509,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         restrict: "AE",
         scope: !0,
         link: link,
-        templateUrl: "avRegistration/openid-connect-directve/openid-connect-directve.html"
+        templateUrl: "avRegistration/openid-connect-directive/openid-connect-directive.html"
     };
 } ]), angular.module("avRegistration").controller("LogoutController", [ "$scope", "$stateParams", "$filter", "ConfigService", "$i18next", "$state", "$cookies", "Authmethod", function($scope, $stateParams, $filter, ConfigService, $i18next, $state, $cookies, Authmethod) {
     var authevent = (ConfigService.freeAuthId, Authmethod.getAuthevent()), postfix = "_authevent_" + authevent;
