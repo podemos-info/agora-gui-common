@@ -170,7 +170,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             type: "password",
             required: !0,
             required_on_authentication: !0
-        })) : "email-and-password" === viewEventData.auth_method && (fields.push({
+        })) : "email-and-password" === viewEventData.auth_method ? (fields.push({
             name: "email",
             type: "email",
             required: !0,
@@ -180,7 +180,14 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             type: "password",
             required: !0,
             required_on_authentication: !0
-        })) : fields.push({
+        })) : "openid-connect" === viewEventData.auth_method && fields.push({
+            name: "sub",
+            type: "text",
+            required: rrue,
+            min: 1,
+            max: 255,
+            required_on_authentication: !0
+        }) : fields.push({
             name: "email",
             type: "email",
             required: !0,
