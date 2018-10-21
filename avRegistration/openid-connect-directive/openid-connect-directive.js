@@ -106,7 +106,8 @@ angular.module('avRegistration')
         function processOpenIdAuthCallback()
         {
             // validate csrf token from uri and from state in the hash
-            var validated = validateCsrfToken();
+            validateCsrfToken();
+
             var uri = "?" + $window.location.hash;
 
             var data = {

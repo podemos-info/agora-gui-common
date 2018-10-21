@@ -357,7 +357,7 @@ angular.module('avRegistration')
         {
             /* jshint ignore:start */
             var random = sjcl.random.randomWords(/* bitlength */ 2048 / 32, 0);
-            return sjcl.codec.base64.fromBits(random);
+            return sjcl.codec.hex.fromBits(random);
             /* jshint ignore:end */
         }
 
