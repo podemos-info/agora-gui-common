@@ -461,7 +461,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         }
         function validateCsrfToken() {
             if (!$cookies["openid-connect-csrf"]) return redirectToLogin(), null;
-            var csrf = scope.csrf = angular.fromJson($cookies["openid-connect-csrf"]), uri = "?" + $window.location.hash;
+            var csrf = scope.csrf = angular.fromJson($cookies["openid-connect-csrf"]), uri = "?" + $window.location.hash.substr(1);
             $cookies["openid-connect-csrf"] = null;
             var isCsrfValid = !!csrf && angular.isObject(csrf) && angular.isString(csrf.randomState) && angular.isString(csrf.randomNonce) && angular.isNumber(csrf.created) && getURIParameter("state", uri) === csrf.randomState && csrf.created - Date.now() < maxOAuthLoginTimeout;
             return isCsrfValid ? !0 : (redirectToLogin(), null);

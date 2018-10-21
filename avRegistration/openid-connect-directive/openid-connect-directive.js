@@ -60,7 +60,7 @@ angular.module('avRegistration')
 
             // validate csrf token format and data
             var csrf = scope.csrf = angular.fromJson($cookies['openid-connect-csrf']);
-            var uri = "?" + $window.location.hash;
+            var uri = "?" + $window.location.hash.substr(1);
 
             $cookies['openid-connect-csrf'] = null;
             var isCsrfValid = (!!csrf &&
