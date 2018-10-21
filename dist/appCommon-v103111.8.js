@@ -323,7 +323,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         }
         function randomStr() {
             var random = sjcl.random.randomWords(64, 0);
-            return sjcl.codec.base64.fromBits(random);
+            return sjcl.codec.hex.fromBits(random);
         }
         scope.isCensusQuery = attrs.isCensusQuery;
         var adminId = ConfigService.freeAuthId + "", autheventid = scope.eventId = attrs.eventId;
@@ -471,7 +471,8 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             return params ? params[2] ? decodeURIComponent(params[2].replace(/\+/g, " ")) : "" : null;
         }
         function processOpenIdAuthCallback() {
-            var uri = (validateCsrfToken(), "?" + $window.location.hash), data = {
+            validateCsrfToken();
+            var uri = "?" + $window.location.hash, data = {
                 id_token: getURIParameter("id_token", uri),
                 provider: scope.csrf.providerId,
                 nonce: scope.csrf.randomNonce
