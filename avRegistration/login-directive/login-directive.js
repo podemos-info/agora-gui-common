@@ -389,7 +389,7 @@ angular.module('avRegistration')
                 "&scope=" + encodeURIComponent("openid email") +
                 "&redirect_uri=" + encodeURIComponent(
                     $window.location.origin +
-                    "/election/login-openid-connect-redirect/"
+                    "/election/login-openid-connect-redirect"
                 ) +
                 "&state=" + randomState +
                 "&nonce=" + randomNonce
