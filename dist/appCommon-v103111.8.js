@@ -456,15 +456,13 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
     function link(scope, element, attrs) {
         function redirectToLogin() {
             var eventId = null;
-            if ($cookies["openid-connect-csrf"]) {
-                var csrf = angular.fromJson($cookies["openid-connect-csrf"]);
-                eventId = csrf.eventId;
-            }
-            eventId ? $window.location.href = "/election/" + eventId + "/public/login" : $window.location.href = "/";
+            scope.csrf && (eventId = scope.csrf.eventId), eventId ? $window.location.href = "/election/" + eventId + "/public/login" : $window.location.href = "/";
         }
         function validateCsrfToken() {
             if (!$cookies["openid-connect-csrf"]) return redirectToLogin(), null;
-            var csrf = angular.fromJson($cookies["openid-connect-csrf"]), isCsrfValid = !!csrf && angular.isObject(csrf) && angular.isString(csrf.randomState) && angular.isString(csrf.randomNonce) && angular.isNumber(csrf.created) && $location.search().nonce === csrf.randomNonce && csrf.created - Date.now() < maxOAuthLoginTimeout;
+            var csrf = angular.fromJson($cookies["openid-connect-csrf"]), uri = "?" + $window.location.hash;
+            $cookies["openid-connect-csrf"] = null;
+            var isCsrfValid = !!csrf && angular.isObject(csrf) && angular.isString(csrf.randomState) && angular.isString(csrf.randomNonce) && angular.isNumber(csrf.created) && getURIParameter("nonce", uri) === csrf.randomNonce && csrf.created - Date.now() < maxOAuthLoginTimeout;
             return isCsrfValid ? csrf.randomNonce : (redirectToLogin(), null);
         }
         function getURIParameter(paramName, uri) {
@@ -493,7 +491,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             });
         }
         var maxOAuthLoginTimeout = 3e5;
-        processOpenIdAuthCallback();
+        scope.csrf = null, processOpenIdAuthCallback();
     }
     return {
         restrict: "AE",

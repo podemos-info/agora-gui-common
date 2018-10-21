@@ -31,14 +31,15 @@ angular.module('avRegistration')
         // Maximum Oauth Login Timeout is 5 minutes
         var maxOAuthLoginTimeout = 1000 * 60 * 5;
 
+        scope.csrf = null;
+
         // Redirects to the login page of the respective event_id
         function redirectToLogin()
         {
             var eventId = null;
-            if ($cookies['openid-connect-csrf'])
+            if (scope.csrf)
             {
-              var csrf = angular.fromJson($cookies['openid-connect-csrf']);
-              eventId = csrf.eventId;
+              eventId = scope.csrf.eventId;
             }
 
             if (eventId) {
@@ -59,12 +60,15 @@ angular.module('avRegistration')
 
             // validate csrf token format and data
             var csrf = angular.fromJson($cookies['openid-connect-csrf']);
+            var uri = "?" + $window.location.hash;
+
+            $cookies['openid-connect-csrf'] = null;
             var isCsrfValid = (!!csrf &&
               angular.isObject(csrf) &&
               angular.isString(csrf.randomState) &&
               angular.isString(csrf.randomNonce) &&
               angular.isNumber(csrf.created) &&
-              $location.search().nonce === csrf.randomNonce &&
+              getURIParameter("nonce", uri) === csrf.randomNonce &&
               csrf.created - Date.now() < maxOAuthLoginTimeout
             );
 
