@@ -205,7 +205,11 @@ angular.module('avRegistration')
         {
             processOpenIdAuthRequest();
         }
-
-
       }
+      return {
+        restrict: 'AE',
+        scope: true,
+        link: link,
+        templateUrl: 'avRegistration/openid-connect-directve/openid-connect-directve.html'
+      };
     });
