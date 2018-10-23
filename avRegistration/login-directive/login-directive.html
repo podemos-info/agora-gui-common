@@ -122,6 +122,7 @@
             alt="{{provider.description}}"
             class="btn btn-primary btn-twitter">
             <img
+              ng-if="!!provider.icon"
               alt="{{provider.description}}"
               class="logo-img"
               ng-src="{{provider.icon}}" />
