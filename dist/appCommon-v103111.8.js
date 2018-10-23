@@ -443,7 +443,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
                 eventId: scope.eventId,
                 providerId: provider.id
             }), !provider) return void (scope.error = $i18next("avRegistration.openidError"));
-            var authURI = provider.authorization_endpoint + "?response_type=id_token&client_id=" + encodeURIComponent(provider.client_id) + "&scope=" + encodeURIComponent("openid email") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/election/login-openid-connect-redirect") + "&state=" + randomState + "&nonce=" + randomNonce;
+            var authURI = provider.authorization_endpoint + "?response_type=id_token&client_id=" + encodeURIComponent(provider.client_id) + "&scope=" + encodeURIComponent("openid") + "&redirect_uri=" + encodeURIComponent($window.location.origin + "/election/login-openid-connect-redirect") + "&state=" + randomState + "&nonce=" + randomNonce;
             $window.location.href = authURI;
         };
     }
