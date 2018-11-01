@@ -62,6 +62,22 @@ angular.module('avRegistration')
             var csrf = scope.csrf = angular.fromJson($cookies['openid-connect-csrf']);
             var uri = "?" + $window.location.hash.substr(1);
 
+            // NOTE: if you need to debug this callback, obtain the callback
+            // URL, get the callback received in the server (to obtain the
+            // nonce) that was received by the client and change the data here
+            // accordingly and set here the debug break point, then execute
+            // a line like the following in the comment.
+            //
+            // The only data that needs to be changed is the randomNonnce and
+            // the eventId.
+            //
+            // csrf = scope.csrf = {
+            //   randomNonce: 'something',
+            //   randomState: getURIParameter("state", uri),
+            //   created: Date.now(),
+            //   eventId: 11111
+            // };
+
             $cookies['openid-connect-csrf'] = null;
             var isCsrfValid = (!!csrf &&
               angular.isObject(csrf) &&
@@ -108,7 +124,7 @@ angular.module('avRegistration')
             // validate csrf token from uri and from state in the hash
             validateCsrfToken();
 
-            var uri = "?" + $window.location.hash;
+            var uri = "?" + $window.location.hash.substr(1);
 
             var data = {
                 id_token: getURIParameter("id_token", uri),
