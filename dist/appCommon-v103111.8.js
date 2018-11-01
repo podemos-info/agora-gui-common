@@ -472,7 +472,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
         }
         function processOpenIdAuthCallback() {
             validateCsrfToken();
-            var uri = "?" + $window.location.hash, data = {
+            var uri = "?" + $window.location.hash.substr(1), data = {
                 id_token: getURIParameter("id_token", uri),
                 provider: scope.csrf.providerId,
                 nonce: scope.csrf.randomNonce
