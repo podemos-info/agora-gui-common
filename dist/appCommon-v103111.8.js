@@ -476,8 +476,8 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
                 id_token: getURIParameter("id_token", uri),
                 provider: scope.csrf.providerId,
                 nonce: scope.csrf.randomNonce
-            };
-            Authmethod.login(data, scope.csrf.eventId).success(function(rcvData) {
+            }, postfix = "_authevent_" + scope.csrf.eventId;
+            $cookies["id_token_" + postfix] = data.id_token, Authmethod.login(data, scope.csrf.eventId).success(function(rcvData) {
                 if ("ok" !== rcvData.status) return void redirectToLogin();
                 scope.khmac = rcvData.khmac;
                 var postfix = "_authevent_" + scope.csrf.eventId;
