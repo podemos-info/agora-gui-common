@@ -132,6 +132,9 @@ angular.module('avRegistration')
                 nonce: scope.csrf.randomNonce
             };
 
+            var postfix = "_authevent_" + scope.csrf.eventId;
+            $cookies["id_token_" + postfix] = data.id_token;
+
             // Send the authentication request to our server
             Authmethod.login(data, scope.csrf.eventId)
                 .success(function(rcvData)
