@@ -33,21 +33,90 @@ angular.module('avRegistration')
 
         scope.csrf = null;
 
-        // Redirects to the login page of the respective event_id
+        // simply redirect to login
+        function simpleRedirectToLogin()
+        {
+          if (scope.csrf)
+          {
+            $window.location.href = "/election/" + scope.csrf.eventId + "/public/login";
+          } else  {
+            $window.location.href = "/";
+          }
+        }
+
+        // Returns the logout url if any from the appropiate openidprovider
+        // TODO: logout asumes that you are using the first provider, so it
+        // basically supports only one provider
+        function getLogoutUri()
+        {
+          if (ConfigService.openIDConnectProviders.length === 0 || !ConfigService.openIDConnectProviders[0].logout_uri)
+          {
+            return false;
+          }
+
+          var eventId = null;
+          if (scope.csrf)
+          {
+            eventId = scope.csrf.eventId;
+          }
+
+          var uri = ConfigService.openIDConnectProviders[0].logout_uri;
+          uri = uri.replace("__EVENT_ID__", "" + eventId);
+
+          var postfix = "_authevent_" + eventId;
+          if (!!$cookies["id_token_" + postfix])
+          {
+            uri = uri.replace("__ID_TOKEN__", $cookies["id_token_" + postfix]);
+          }
+
+          return uri;
+        }
+
+        scope.redirectingToUri = false;
+
+        // Redirects to the login page of the respective event_id if any
         function redirectToLogin()
         {
-            var eventId = null;
-            if (scope.csrf)
-            {
-              eventId = scope.csrf.eventId;
-            }
+          if (scope.redirectingToUri)
+          {
+            return;
+          }
 
-            if (eventId) {
-              $window.location.href = "/election/" + eventId + "/public/login";
-            } else {
-              $window.location.href = "/";
-            }
-        }
+          scope.redirectingToUri = true;
+
+          var eventId = null;
+          if (scope.csrf)
+          {
+            eventId = scope.csrf.eventId;
+          } else {
+            $window.location.href = "/";
+            return;
+          }
+
+          Authmethod.viewEvent(eventId)
+            .success(
+              function(data)
+              {
+                if (data.status !== "ok" || !data.events || data.events.auth_method !== 'openid-connect' || !getLogoutUri())
+                {
+                  simpleRedirectToLogin();
+                  return;
+                }
+
+                var postfix = "_authevent_" + eventId;
+                var uri = getLogoutUri();
+                delete $cookies["id_token_" + postfix];
+                $window.location.href = uri;
+              }
+            )
+            .error(
+              function(error)
+              {
+                simpleRedirectToLogin();
+              }
+            );
+        };
+
 
         // validates the CSRF token
         function validateCsrfToken()

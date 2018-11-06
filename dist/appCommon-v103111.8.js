@@ -455,9 +455,32 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
     };
 } ]), angular.module("avRegistration").directive("avOpenidConnect", [ "$cookies", "$window", "$location", "ConfigService", "Authmethod", function($cookies, $window, $location, ConfigService, Authmethod) {
     function link(scope, element, attrs) {
-        function redirectToLogin() {
+        function simpleRedirectToLogin() {
+            scope.csrf ? $window.location.href = "/election/" + scope.csrf.eventId + "/public/login" : $window.location.href = "/";
+        }
+        function getLogoutUri() {
+            if (0 === ConfigService.openIDConnectProviders.length || !ConfigService.openIDConnectProviders[0].logout_uri) return !1;
             var eventId = null;
-            scope.csrf && (eventId = scope.csrf.eventId), eventId ? $window.location.href = "/election/" + eventId + "/public/login" : $window.location.href = "/";
+            scope.csrf && (eventId = scope.csrf.eventId);
+            var uri = ConfigService.openIDConnectProviders[0].logout_uri;
+            uri = uri.replace("__EVENT_ID__", "" + eventId);
+            var postfix = "_authevent_" + eventId;
+            return $cookies["id_token_" + postfix] && (uri = uri.replace("__ID_TOKEN__", $cookies["id_token_" + postfix])), 
+            uri;
+        }
+        function redirectToLogin() {
+            if (!scope.redirectingToUri) {
+                scope.redirectingToUri = !0;
+                var eventId = null;
+                if (!scope.csrf) return void ($window.location.href = "/");
+                eventId = scope.csrf.eventId, Authmethod.viewEvent(eventId).success(function(data) {
+                    if ("ok" !== data.status || !data.events || "openid-connect" !== data.events.auth_method || !getLogoutUri()) return void simpleRedirectToLogin();
+                    var postfix = "_authevent_" + eventId, uri = getLogoutUri();
+                    delete $cookies["id_token_" + postfix], $window.location.href = uri;
+                }).error(function(error) {
+                    simpleRedirectToLogin();
+                });
+            }
         }
         function validateCsrfToken() {
             if (!$cookies["openid-connect-csrf"]) return redirectToLogin(), null;
@@ -493,7 +516,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             });
         }
         var maxOAuthLoginTimeout = 3e5;
-        scope.csrf = null, processOpenIdAuthCallback();
+        scope.csrf = null, scope.redirectingToUri = !1, processOpenIdAuthCallback();
     }
     return {
         restrict: "AE",
