@@ -465,7 +465,7 @@ angular.module("avRegistration").factory("Authmethod", [ "$http", "$cookies", "C
             var uri = ConfigService.openIDConnectProviders[0].logout_uri;
             uri = uri.replace("__EVENT_ID__", "" + eventId);
             var postfix = "_authevent_" + eventId;
-            return $cookies["id_token_" + postfix] && (uri = uri.replace("__ID_TOKEN__", $cookies["id_token_" + postfix])), 
+            return $cookies["id_token_" + postfix] ? uri = uri.replace("__ID_TOKEN__", $cookies["id_token_" + postfix]) : uri.indexOf("__ID_TOKEN__") > -1 && (uri = "/election/" + eventId + "/public/login"), 
             uri;
         }
         function redirectToLogin() {
